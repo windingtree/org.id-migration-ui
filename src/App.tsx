@@ -1,26 +1,74 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import '@fontsource/public-sans';
+import '@rainbow-me/rainbowkit/styles.css';
+import { BrowserRouter } from 'react-router-dom';
+import { CssVarsProvider, extendTheme } from '@mui/joy/styles';
+import { configureChains, createClient, WagmiConfig } from 'wagmi';
+import { connectorsForWallets } from '@rainbow-me/rainbowkit';
+import {
+  injectedWallet,
+  rainbowWallet,
+  walletConnectWallet,
+  ledgerWallet,
+  argentWallet,
+  braveWallet,
+  coinbaseWallet,
+  metaMaskWallet,
+  omniWallet,
+  trustWallet,
+} from '@rainbow-me/rainbowkit/wallets';
+import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { publicProvider } from 'wagmi/providers/public';
+import { AppRoutes } from './Routes';
+import { CHAINS } from './config';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+// Theme customization
+const theme = extendTheme({});
 
-export default App;
+const { chains, provider, webSocketProvider } = configureChains(
+  CHAINS.map((c) => ({
+    id: c.chainId,
+    name: c.name,
+    network: c.name,
+    rpcUrls: {
+      default: c.rpc,
+    },
+  })),
+  [publicProvider()],
+);
+
+const connectors = connectorsForWallets([
+  {
+    groupName: 'Choose your wallet',
+    wallets: [
+      injectedWallet({ chains }),
+      metaMaskWallet({ chains }),
+      walletConnectWallet({ chains }),
+      coinbaseWallet({ appName: 'ORGiD', chains }),
+      ledgerWallet({ chains }),
+      trustWallet({ chains }),
+      rainbowWallet({ chains }),
+      argentWallet({ chains }),
+      braveWallet({ chains }),
+      omniWallet({ chains }),
+    ],
+  },
+]);
+
+const wagmiClient = createClient({
+  autoConnect: true,
+  connectors,
+  provider,
+  webSocketProvider,
+});
+
+export const App = () => (
+  <CssVarsProvider theme={theme}>
+    <WagmiConfig client={wagmiClient}>
+      <RainbowKitProvider chains={chains}>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </RainbowKitProvider>
+    </WagmiConfig>
+  </CssVarsProvider>
+);
