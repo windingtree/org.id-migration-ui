@@ -13,7 +13,7 @@ export const checkEnvVariables = (vars: string[]): void =>
     }
   });
 
-checkEnvVariables([]);
+checkEnvVariables(['REACT_APP_BE_URI']);
 
 export const CHAINS: ChainConfig[] = [
   {
@@ -46,3 +46,5 @@ export const CHAINS: ChainConfig[] = [
 ];
 
 export const DEST_CHAINS = CHAINS.filter((c) => c.dest);
+
+export const BE_URI = process.env.REACT_APP_BE_URI || '';
