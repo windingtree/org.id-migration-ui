@@ -2,6 +2,7 @@ import '@fontsource/public-sans';
 import '@rainbow-me/rainbowkit/styles.css';
 import { BrowserRouter } from 'react-router-dom';
 import { CssVarsProvider, extendTheme } from '@mui/joy/styles';
+import CssBaseline from '@mui/joy/CssBaseline';
 import { configureChains, createClient, WagmiConfig } from 'wagmi';
 import { connectorsForWallets } from '@rainbow-me/rainbowkit';
 import {
@@ -18,7 +19,9 @@ import {
 } from '@rainbow-me/rainbowkit/wallets';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { publicProvider } from 'wagmi/providers/public';
-import { AppRoutes } from './Routes';
+import { Routes } from './Routes';
+import { PageWrapper } from './components/PageWrapper';
+import { RoutesTabs } from './components/RoutesTabs';
 import { CHAINS } from './config';
 
 // Theme customization
@@ -63,10 +66,14 @@ const wagmiClient = createClient({
 
 export const App = () => (
   <CssVarsProvider theme={theme}>
+    <CssBaseline />
     <WagmiConfig client={wagmiClient}>
       <RainbowKitProvider chains={chains}>
         <BrowserRouter>
-          <AppRoutes />
+          <RoutesTabs />
+          <PageWrapper>
+            <Routes />
+          </PageWrapper>
         </BrowserRouter>
       </RainbowKitProvider>
     </WagmiConfig>
