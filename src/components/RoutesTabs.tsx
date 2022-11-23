@@ -9,11 +9,13 @@ export const RoutesTabs = () => (
     sx={{ p: 1, borderRadius: 'lg' }}
   >
     <TabList>
-      {pagesRoutes.map(({ label, path }, index) => (
-        <Tab key={index} value={path} to={path} component={Link}>
-          {label}
-        </Tab>
-      ))}
+      {pagesRoutes
+        .filter(({ menu }) => menu)
+        .map(({ label, path }, index) => (
+          <Tab key={index} value={path} to={path} component={Link}>
+            {label}
+          </Tab>
+        ))}
     </TabList>
   </Tabs>
 );

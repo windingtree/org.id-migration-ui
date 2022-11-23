@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useState, createContext, useContext } from 'react';
 import { useAccount } from 'wagmi';
 import { getOwnOrgIds } from '../api/be';
+import { Dids } from '../common/types';
 
 export interface UseOwnOrgIdsHook {
-  data: string[] | undefined;
+  data?: Dids;
   loading: boolean;
   loaded: boolean;
-  error: string | undefined;
+  error?: string;
 }
 
 export interface OwnOrgIdsContext {
   address?: string;
-  data?: string[];
+  data?: Dids;
 }
 
 export const ownOrgIdsContext = createContext<OwnOrgIdsContext>({});
@@ -22,7 +23,7 @@ export const useOwnOrgIds = (): UseOwnOrgIdsHook => {
   const [error, setError] = useState<string | undefined>();
   const [loading, setLoading] = useState<boolean>(false);
   const [loaded, setLoaded] = useState<boolean>(false);
-  const [data, setData] = useState<string[] | undefined>();
+  const [data, setData] = useState<Dids | undefined>();
 
   const getOrgIds = useCallback(
     async (address: string) => {

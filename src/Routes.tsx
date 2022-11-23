@@ -18,6 +18,7 @@ export type RouteConfig = {
   title: string;
   label: string;
   protected?: boolean;
+  menu?: boolean;
 };
 
 export type Routes = RouteConfig[];
@@ -37,18 +38,27 @@ export const pagesRoutes: Routes = [
     element: <Migrate />,
     title: 'Migrate ORGiD',
     label: 'Migrate',
+    menu: true,
   },
   {
     path: '/resolve',
     element: <Resolve />,
     title: 'Resolve ORGiD',
     label: 'Resolve',
+    menu: true,
   },
   {
     path: '/create',
     element: <Create />,
     title: 'Create ORGiD',
     label: 'Create',
+    menu: true,
+  },
+  {
+    path: '/migrate/:did',
+    element: <Migrate />,
+    title: 'Migrate ORGiD',
+    label: 'Migrate',
   },
 ];
 

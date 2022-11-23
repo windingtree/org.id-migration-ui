@@ -1,8 +1,9 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
-import { CircularProgress, Box, List, ListItem, Divider } from '@mui/joy';
+import { CircularProgress, Box, List, Divider } from '@mui/joy';
 import { useOwnOrgIds } from '../hooks/useOwnOrgIds';
 import { Message } from '../components/Message';
+import { EllipsisListButton } from '../components/EllipsisListButton';
 
 export const Migrate = () => {
   const { address } = useAccount();
@@ -23,8 +24,10 @@ export const Migrate = () => {
       </Message>
       {data && (
         <List>
-          {data.map((o, index) => (
-            <ListItem key={index}>{o}</ListItem>
+          {data.map((d, index) => (
+            <EllipsisListButton key={index} disabled={d.state !== 'ready'}>
+              {d.did}
+            </EllipsisListButton>
           ))}
         </List>
       )}
