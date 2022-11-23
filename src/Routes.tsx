@@ -6,6 +6,7 @@ import { useAccount } from 'wagmi';
 import { Migrate } from './pages/Migrate';
 import { Resolve } from './pages/Resolve';
 import { Create } from './pages/Create';
+import { Profile } from './pages/Profile';
 
 export interface ProtectedProps {
   component: ReactNode;
@@ -56,7 +57,7 @@ export const pagesRoutes: Routes = [
   },
   {
     path: '/migrate/:did',
-    element: <Migrate />,
+    element: <Profile />,
     title: 'Migrate ORGiD',
     label: 'Migrate',
   },
