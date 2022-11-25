@@ -1,4 +1,5 @@
-import { useAccount } from 'wagmi';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// import { useAccount } from 'wagmi';
 import { ReactNode, useMemo, useState, useEffect } from 'react';
 import { useForm, UseFormRegister, UseFormUnregister } from 'react-hook-form';
 import {
@@ -240,7 +241,7 @@ export const buildForm = (
   });
 
 export const Profile = () => {
-  const { address } = useAccount();
+  // const { address } = useAccount();
   const { did } = useParams();
   const { orgJson, loading, error } = useOldOrgId(did);
   const {
@@ -251,7 +252,7 @@ export const Profile = () => {
     formState: { errors },
   } = useForm<ProfileForm | ProfileUnitForm>();
   const { orgId } = parseDid(did || '');
-  const { profileConfig, orgIdBadge } = useMemo(
+  const { profileConfig } = useMemo(
     () => ({
       profileConfig:
         orgJson && orgJson.organizationalUnit ? unitConfig : legalEntityConfig,

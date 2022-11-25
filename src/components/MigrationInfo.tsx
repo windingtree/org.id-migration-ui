@@ -14,6 +14,7 @@ export interface MigrationInfoProps {
 }
 
 export const MigrationInfo = ({ did }: MigrationInfoProps) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data, loading, loaded, error } = useApi<RequestStatus>(
     'GET',
     'api/request/did',

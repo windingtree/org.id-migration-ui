@@ -458,7 +458,5 @@ export const getDefaultProfile = (
     template.logo = orgJson?.legalEntity?.media?.logo || '';
   }
 
-  console.log('@@@TTT@@@', template);
-
   return template;
 };
