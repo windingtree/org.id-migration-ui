@@ -6,12 +6,7 @@ import {
   useMemo,
   useEffect,
 } from 'react';
-import axios, {
-  Method,
-  AxiosRequestConfig,
-  ParamsSerializerOptions,
-  AxiosError,
-} from 'axios';
+import axios, { Method, AxiosRequestConfig, AxiosError } from 'axios';
 import Qs from 'qs';
 import { BE_URI } from '../config';
 
@@ -123,7 +118,13 @@ export const useApi = <T>(
   const [errorCode, setErrorCode] = useState<HttpStatusCode | undefined>();
   const [loading, setLoading] = useState<boolean>(false);
   const [loaded, setLoaded] = useState<boolean>(false);
-  const key = useMemo(() => `${method}:${url}`, [method, url]);
+  const key = useMemo(
+    () =>
+      `${method}:${url}${
+        method.toLocaleLowerCase() === 'get' ? JSON.stringify(params) : ''
+      }`,
+    [method, url],
+  );
   const data = useMemo(() => ctx[key] as T | undefined, [ctx[key]]);
 
   const load = useCallback(

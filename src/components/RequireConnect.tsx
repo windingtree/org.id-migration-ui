@@ -6,10 +6,6 @@ import { Message } from '../components/Message';
 export const RequireConnect = () => {
   const { address } = useAccount();
 
-  if (address) {
-    return null;
-  }
-
   return (
     <>
       <Message type="warn" show={address === undefined}>
