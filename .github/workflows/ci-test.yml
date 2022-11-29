@@ -29,11 +29,8 @@ jobs:
       - name: Build dapp
         env:
           NODE_OPTIONS: --max_old_space_size=8192
-          BROWSER: none
-          HTTPS: true
-          REACT_APP_LOG_LEVEL: info
-          NODE_ENV: development
           GENERATE_SOURCEMAP: false
+          REACT_APP_ENV: stage
           REACT_APP_BE_URI: https://api.test-orgid-migration.windingtree.com
         run: |
           rm -rf ./build
