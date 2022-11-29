@@ -84,6 +84,7 @@ export interface UseApiHook<T = unknown> {
   error?: string;
   errorCode?: HttpStatusCode;
   reload: () => Promise<void>;
+  reset: () => void;
 }
 
 export const paramsSerializer = (params: Record<string, string>): string =>
@@ -126,6 +127,12 @@ export const useApi = <T>(
     [method, url],
   );
   const data = useMemo(() => ctx[key] as T | undefined, [ctx[key]]);
+
+  const reset = useCallback(() => {
+    setError(undefined);
+    setErrorCode(undefined);
+    delete ctx[key];
+  }, [ctx[key]]);
 
   const load = useCallback(
     async (noContext = false) => {
@@ -179,5 +186,5 @@ export const useApi = <T>(
     }
   }, [key, acceptance]);
 
-  return { data, loading, loaded, error, errorCode, reload };
+  return { data, loading, loaded, error, errorCode, reload, reset };
 };
