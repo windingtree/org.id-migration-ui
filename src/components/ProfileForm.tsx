@@ -47,7 +47,7 @@ export const buildStringOption = (
     scope
       ? `${scope}${scopeIndex !== undefined ? '[' + scopeIndex + ']' : ''}.${option.name}`
       : option.name
-  ) as any;
+  ) as any; // eslint-disable-line @typescript-eslint/no-explicit-any
   const error = scope
     ? scopeIndex !== undefined
       ? errors[scope]?.[scopeIndex]?.[option.name]?.message
@@ -89,6 +89,7 @@ export const buildArrayOption = (
       {Array(arrayItems)
         .fill(null)
         .map((_, index) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const fieldName = `${option.name}[${index}]` as any;
           const error = errors[option.name]?.[index]?.message;
           return (

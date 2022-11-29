@@ -96,12 +96,14 @@ export const MigrationConfirmation = ({
 
   useEffect(() => {
     if (vc) {
+      // eslint-disable-next-line no-console
       console.log('VC:', vc);
     }
   }, [vc]);
 
   useEffect(() => {
     if (data) {
+      // eslint-disable-next-line no-console
       console.log('Request status:', data);
       resetState(data);
     }
