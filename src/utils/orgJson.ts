@@ -1,4 +1,8 @@
 import { RegisterOptions } from 'react-hook-form';
+import { ORGJSON } from '@windingtree/org.json-schema/types/org.json';
+import { createVerificationMethodWithBlockchainAccountId } from '@windingtree/org.json-utils';
+import { NFTMetadata } from '@windingtree/org.json-schema/types/nft';
+import { DateTime } from 'luxon';
 import * as regex from '../utils/regex';
 
 export type ProfileOptionType =
@@ -43,7 +47,7 @@ export interface Contact {
   email: string;
 }
 
-export interface ProfileForm {
+export interface ProfileFormValues {
   legalName: string;
   registryCode: string;
   identifier: Identifier[];
@@ -53,7 +57,7 @@ export interface ProfileForm {
   logo: string;
 }
 
-export interface ProfileUnitForm {
+export interface ProfileUnitFormValues {
   name: string;
   description: string;
   type: string[];
@@ -380,7 +384,7 @@ export const defaultLegalEntityProfile = () =>
       contacts: [defaultContact],
       logo: '',
     },
-  ) as unknown as ProfileForm;
+  ) as unknown as ProfileFormValues;
 
 export const defaultUnitProfile = () =>
   Object.assign(
@@ -393,18 +397,18 @@ export const defaultUnitProfile = () =>
       contacts: [defaultContact],
       logo: '',
     },
-  ) as unknown as ProfileUnitForm;
+  ) as unknown as ProfileUnitFormValues;
 
 export const getDefaultProfile = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   orgJson?: Record<string, any>,
-): ProfileForm | ProfileUnitForm | undefined => {
+): ProfileFormValues | ProfileUnitFormValues | undefined => {
   if (!orgJson) {
     return undefined;
   }
 
   const isUnit = !!orgJson.organizationalUnit;
-  let template: ProfileForm | ProfileUnitForm;
+  let template: ProfileFormValues | ProfileUnitFormValues;
 
   if (isUnit) {
     template = defaultUnitProfile();
@@ -459,4 +463,68 @@ export const getDefaultProfile = (
   }
 
   return template;
+};
+
+// Build NFT metadata that will be merged with a VC
+export const buildNftMetadata = (orgJson: ORGJSON): NFTMetadata => {
+  const isLegalEntity = !!orgJson.legalEntity;
+
+  let nftName: string;
+  let nftAlterName: string;
+  let nftImage: string;
+
+  if (isLegalEntity) {
+    nftName = orgJson?.legalEntity?.legalName as string;
+    nftAlterName = orgJson?.legalEntity?.alternativeName as string;
+    nftImage = orgJson?.legalEntity?.media?.logo as string;
+  } else {
+    nftName = orgJson?.organizationalUnit?.name as string;
+    nftAlterName = orgJson?.organizationalUnit?.description as string;
+    nftImage = orgJson?.organizationalUnit?.media?.logo as string;
+  }
+
+  return {
+    name: nftAlterName || nftName,
+    description: nftName,
+    image: nftImage,
+  };
+};
+
+// Builds ORG.jSON
+export const buildOrgJson = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any,
+  orgId: string,
+  chain: string,
+  owner: string,
+  parentOrganization?: string,
+): ORGJSON => {
+  const id = `did:orgid:${chain}:${orgId}`;
+  const isUnit = data.name !== undefined;
+  return {
+    '@context': [
+      'https://www.w3.org/ns/did/v1',
+      'https://raw.githubusercontent.com/windingtree/org.json-schema/feat/new-orgid/src/context.json',
+    ],
+    id,
+    created: DateTime.now().toISO(),
+    [isUnit ? 'organizationalUnit' : 'legalEntity']: {
+      ...data,
+      ...(isUnit && parentOrganization
+        ? {
+            parentOrganization,
+          }
+        : {}),
+    },
+    verificationMethod: [
+      createVerificationMethodWithBlockchainAccountId(
+        `${id}#key1`,
+        id,
+        'eip155',
+        chain,
+        owner,
+        'Default verification method',
+      ),
+    ],
+  };
 };

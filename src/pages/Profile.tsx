@@ -1,281 +1,253 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// import { useAccount } from 'wagmi';
-import { ReactNode, useMemo, useState, useEffect } from 'react';
-import { useForm, UseFormRegister, UseFormUnregister } from 'react-hook-form';
+import { createContext, useCallback, useContext } from 'react';
+import { Wallet } from 'ethers';
+import { useAccount, useSigner } from 'wagmi';
+import { useMemo, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import {
   Button,
-  Sheet,
-  Box,
-  TextField,
-  FormControl,
   Typography,
-  Badge,
-  Divider,
   CircularProgress,
-  useTheme,
+  Box,
+  FormLabel,
+  Select,
+  Option,
+  Modal,
+  ModalDialog,
+  ModalClose,
 } from '@mui/joy';
-import Add from '@mui/icons-material/Add';
-import Remove from '@mui/icons-material/Remove';
-import { useMediaQuery } from '@mui/material';
 import { useParams } from 'react-router-dom';
+import { ORGJSON } from '@windingtree/org.json-schema/types/org.json';
 import { parseDid } from '@windingtree/org.id-utils/dist/parsers';
+import { createVC, SignedVC } from '@windingtree/org.id-auth/dist/vc';
 import { useOldOrgId } from '../hooks/useOldOrgId';
 import { RequireConnect } from '../components/RequireConnect';
 import { Message } from '../components/Message';
-import { MigrationInfo } from '../components/MigrationInfo';
+import { FormErrors, ProfileConfig, ProfileForm } from '../components/ProfileForm';
 import { centerEllipsis } from '../utils/strings';
 import {
   ProfileOption,
   legalEntityConfig,
   unitConfig,
-  ProfileForm,
-  ProfileUnitForm,
+  ProfileFormValues,
+  ProfileUnitFormValues,
   getDefaultProfile,
+  buildOrgJson,
+  buildNftMetadata,
 } from '../utils/orgJson';
+import { useApi } from '../hooks/useApi';
+import { RequestStatus } from '../common/types';
+import { DEST_CHAINS, getChain } from '../config';
 
 export interface ValidationError {
   message: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type FormErrors = any;
+export interface ProfileContext {
+  chain: string;
+  profile: ProfileFormValues | ProfileUnitFormValues;
+}
 
-export const buildStringOption = (
-  option: ProfileOption,
-  register: UseFormRegister<ProfileForm | ProfileUnitForm>,
-  errors: FormErrors,
-  scope?: string,
-  scopeIndex?: number,
-  keyIndex?: number,
-): ReactNode => {
-  const fieldName = (
-    scope
-      ? `${scope}${scopeIndex !== undefined ? '[' + scopeIndex + ']' : ''}.${option.name}`
-      : option.name
-  ) as any;
-  const error = scope
-    ? scopeIndex !== undefined
-      ? errors[scope]?.[scopeIndex]?.[option.name]?.message
-      : errors[scope]?.[option.name]?.message
-    : errors[option.name]?.message;
-  return (
-    <FormControl key={`str${option.name}${keyIndex}`}>
-      <TextField
-        {...register(fieldName, option.validation)}
-        label={option.label}
-        placeholder={option.placeholder}
-        required={option.required}
-        helperText={error}
-        error={!!error}
-      />
-    </FormControl>
-  );
-};
+export interface MigrationConfirmationProps {
+  did?: string;
+  chain?: string;
+  rawOrgJson?: ORGJSON;
+  onClose: (status?: RequestStatus) => void;
+}
 
-export const buildArrayOption = (
-  option: ProfileOption,
-  register: UseFormRegister<ProfileForm | ProfileUnitForm>,
-  unregister: UseFormUnregister<ProfileForm | ProfileUnitForm>,
-  errors: FormErrors,
-  keyIndex?: number,
-): ReactNode => {
-  const [arrayItems, setArrayItems] = useState(1);
-  return (
-    <Sheet
-      variant="outlined"
-      key={`arr${option.name}${keyIndex}`}
-      sx={{ p: 2, mt: 1, mb: 1 }}
-    >
-      <Badge size="sm" badgeContent={arrayItems > 1 ? arrayItems : 0}>
-        <Typography level="h6" sx={{ mb: 1 }}>
-          {option.label}
-        </Typography>
-      </Badge>
-      {Array(arrayItems)
-        .fill(null)
-        .map((_, index) => {
-          const fieldName = `${option.name}[${index}]` as any;
-          const error = errors[option.name]?.[index]?.message;
-          return (
-            <FormControl key={`itm${option.name}${index}`} sx={{ mb: 1 }}>
-              <TextField
-                {...register(fieldName, option.validation)}
-                placeholder={option.placeholder}
-                required={option.required}
-                helperText={error}
-                error={!!error}
-              />
-            </FormControl>
-          );
-        })}
-      <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
-        <Button
-          size="sm"
-          variant="soft"
-          startDecorator={<Add />}
-          sx={{ mt: 1 }}
-          onClick={() => setArrayItems(arrayItems + 1)}
-        >
-          Add more {option.label}
-        </Button>
-        {arrayItems > 1 && (
-          <Button
-            size="sm"
-            variant="outlined"
-            startDecorator={<Remove />}
-            sx={{ mt: 1 }}
-            onClick={() => {
-              unregister(`${option.name}[${arrayItems - 1}]` as any);
-              setArrayItems(arrayItems - 1);
-            }}
-          >
-            Reduce {option.label}
-          </Button>
-        )}
-      </Box>
-    </Sheet>
-  );
-};
+export const profileContext = createContext<Record<string, ProfileContext>>({});
 
-export const buildGroupOption = (
-  option: ProfileOption,
-  register: UseFormRegister<ProfileForm | ProfileUnitForm>,
-  unregister: UseFormUnregister<ProfileForm | ProfileUnitForm>,
-  errors: FormErrors,
-  allowAddGroup = false,
-  keyIndex?: number,
-): ReactNode => {
-  const theme = useTheme();
-  const isSm = useMediaQuery(theme.breakpoints.down('md'));
-  const [groupItems, setGroupItems] = useState(1);
-  return (
-    <Sheet
-      variant="outlined"
-      key={`grp${option.name}${keyIndex}`}
-      sx={{ p: 2, mt: 1, mb: 1 }}
-    >
-      <Badge size="sm" badgeContent={groupItems > 1 ? groupItems : 0}>
-        <Typography level="h6" sx={{ mb: 1 }}>
-          {option.label}
-        </Typography>
-      </Badge>
-      {Array(groupItems)
-        .fill(null)
-        .map((_, item) => (
-          <Box key={`grpItm${item}`}>
-            {groupItems > 1 && item > 0 && <Divider sx={{ my: 1 }} />}
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: !isSm ? option.groupLayout : 'column',
-                gap: 1,
-                mb: 1,
-              }}
-            >
-              {option.group?.map((o, index) =>
-                buildStringOption(
-                  o,
-                  register,
-                  errors,
-                  option.name,
-                  allowAddGroup ? item : undefined,
-                  index,
-                ),
-              )}
-            </Box>
-          </Box>
-        ))}
-
-      {allowAddGroup && (
-        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
-          <Button
-            size="sm"
-            variant="soft"
-            startDecorator={<Add />}
-            sx={{ mt: 1 }}
-            onClick={() => setGroupItems(groupItems + 1)}
-          >
-            Add more {option.label}
-          </Button>
-          {groupItems > 1 && (
-            <Button
-              size="sm"
-              variant="outlined"
-              startDecorator={<Remove />}
-              sx={{ mt: 1 }}
-              onClick={() => {
-                option.group?.forEach((o) => {
-                  unregister(`${option.name}[${groupItems - 1}].${o.name}` as any);
-                });
-                setGroupItems(groupItems - 1);
-              }}
-            >
-              Reduce {option.label}
-            </Button>
-          )}
-        </Box>
-      )}
-    </Sheet>
-  );
-};
-
-export const buildForm = (
-  config: ProfileOption[],
-  register: UseFormRegister<ProfileForm | ProfileUnitForm>,
-  unregister: UseFormUnregister<ProfileForm | ProfileUnitForm>,
-  errors: FormErrors,
-): ReactNode =>
-  config.map((option) => {
-    switch (option.type) {
-      case 'string':
-        return buildStringOption(option, register, errors);
-      case 'object':
-        return buildGroupOption(option, register, unregister, errors);
-      case 'group':
-        return buildGroupOption(option, register, unregister, errors, true);
-      case 'array':
-        return buildArrayOption(option, register, unregister, errors);
-      default:
-        return null;
+export const MigrationConfirmation = ({
+  did,
+  chain,
+  rawOrgJson,
+  onClose,
+}: MigrationConfirmationProps) => {
+  const orgId = useMemo<string | undefined>(() => {
+    const result = parseDid(did || '');
+    return result.orgId;
+  }, [did]);
+  const { data: signer } = useSigner();
+  const chainName = useMemo(() => {
+    if (chain) {
+      const config = getChain(chain);
+      return config.name;
     }
-  });
+  }, [chain]);
+  const [signing, setSigning] = useState<boolean>(false);
+  const [vc, setVc] = useState<SignedVC | undefined>();
+  const [vcError, setVcError] = useState<string | undefined>();
+  const { data, loading, error, reset } = useApi<RequestStatus>(
+    'POST',
+    'api/request',
+    did !== undefined && chain !== undefined && vc !== undefined,
+    undefined,
+    { did, chain: Number(chain), orgIdVc: JSON.stringify(vc) },
+  );
+
+  const resetState = (data?: RequestStatus) => {
+    setSigning(false);
+    setVc(undefined);
+    setVcError(undefined);
+    reset();
+    onClose(data);
+  };
+
+  useEffect(() => {
+    if (vc) {
+      console.log('VC:', vc);
+    }
+  }, [vc]);
+
+  useEffect(() => {
+    if (data) {
+      console.log('Request status:', data);
+      resetState(data);
+    }
+  }, [data]);
+
+  const signOrgIdVc = useCallback(async () => {
+    if (!rawOrgJson) {
+      return;
+    }
+    setVcError(undefined);
+    setSigning(true);
+    try {
+      const verificationMethod = `${rawOrgJson.id}#key1`;
+      const blockchainAccountId =
+        rawOrgJson?.verificationMethod?.[0]?.blockchainAccountId;
+      setVc(
+        await createVC(verificationMethod, ['OrgJson'])
+          .setCredentialSubject(rawOrgJson)
+          .setNftMetaData(buildNftMetadata(rawOrgJson))
+          .signWithBlockchainAccount(
+            blockchainAccountId as unknown as string,
+            signer as Wallet,
+          ),
+      );
+      setSigning(false);
+    } catch (err) {
+      setVcError((err as Error).message || 'Unknown ORGiD VC build error');
+      setSigning(false);
+    }
+  }, [rawOrgJson, signer]);
+
+  if (!orgId || !chain || !rawOrgJson || !signer) {
+    return null;
+  }
+
+  return (
+    <Modal open={rawOrgJson !== undefined} onClose={() => resetState()}>
+      <ModalDialog
+        sx={{
+          minWidth: 300,
+          borderRadius: 'md',
+          p: 3,
+        }}
+      >
+        <ModalClose variant="outlined" disabled={signing || loading} />
+
+        <Typography sx={{ mb: 2 }}>
+          Please confirm migration of {centerEllipsis(orgId ?? '', 8)} from Mainnet to the{' '}
+          {chainName}
+        </Typography>
+
+        <Message type="error" show={vcError !== undefined} sx={{ mb: 2 }}>
+          {vcError}
+        </Message>
+
+        <Message type="error" show={error !== undefined} sx={{ mb: 2 }}>
+          {error}
+        </Message>
+
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
+          <Button
+            variant="solid"
+            onClick={signOrgIdVc}
+            disabled={signing || loading}
+            loading={signing || loading}
+          >
+            Migrate
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => resetState()}
+            disabled={signing || loading}
+          >
+            Close
+          </Button>
+        </Box>
+      </ModalDialog>
+    </Modal>
+  );
+};
 
 export const Profile = () => {
-  // const { address } = useAccount();
+  const ctx = useContext(profileContext);
+  const navigate = useNavigate();
+  const { address } = useAccount();
   const { did } = useParams();
-  const { orgJson, loading, error } = useOldOrgId(did);
+  const orgId = useMemo<string | undefined>(() => {
+    const result = parseDid(did || '');
+    return result.orgId;
+  }, [did]);
+  const [chain, setChain] = useState<string | undefined>();
+  const [rawOrgJson, setRawOrgJson] = useState<ORGJSON | undefined>();
   const {
+    watch,
+    reset,
     register,
     unregister,
     handleSubmit,
-    reset,
     formState: { errors },
-  } = useForm<ProfileForm | ProfileUnitForm>();
-  const { orgId } = parseDid(did || '');
-  const { profileConfig } = useMemo(
-    () => ({
-      profileConfig:
-        orgJson && orgJson.organizationalUnit ? unitConfig : legalEntityConfig,
-      orgIdBadge:
-        orgJson && orgJson.organizationalUnit ? 'OrganizationalUnit' : 'LegalEntity',
-    }),
-    [orgJson],
-  );
-
-  const onSubmit = handleSubmit((d) => {
-    // eslint-disable-next-line no-console
-    console.log(d);
-  });
+  } = useForm<ProfileFormValues | ProfileUnitFormValues>();
+  const watchForm = watch();
+  const { orgJson, loading, error } = useOldOrgId(did);
+  const { profileConfig, isUnit } = useMemo<ProfileConfig>(() => {
+    let profileConfig: ProfileOption[] | undefined;
+    let isUnit = false;
+    if (orgJson) {
+      profileConfig = orgJson.organizationalUnit ? unitConfig : legalEntityConfig;
+      isUnit = orgJson.organizationalUnit !== undefined;
+    }
+    return {
+      profileConfig,
+      isUnit,
+    };
+  }, [orgJson]);
 
   useEffect(() => {
-    if (orgJson) {
+    if (did && Object.keys(watchForm).length > 0) {
+      ctx[did] = {
+        ...ctx[did],
+        profile: watchForm,
+      };
+    }
+  }, [did, watchForm]);
+
+  useEffect(() => {
+    if (did && orgJson && !ctx[did]?.profile) {
       reset(getDefaultProfile(orgJson));
     }
-  }, [reset, orgJson]);
+  }, [reset, did, orgJson]);
+
+  const onSubmit = handleSubmit(async (d) => {
+    if (orgJson && orgId && address && chain) {
+      const orgJsonInput = {
+        ...d,
+        media: {
+          logo: orgJson?.[isUnit ? 'organizationalUnit' : 'legalEntity'].media?.logo,
+        },
+      } as unknown as ORGJSON;
+      setRawOrgJson(buildOrgJson(orgJsonInput, orgId, chain, address));
+    }
+  });
 
   return (
     <>
       <RequireConnect />
+
       <Typography
         level="h2"
         component="h2"
@@ -292,14 +264,53 @@ export const Profile = () => {
 
       {loading && <CircularProgress size="md" />}
 
-      <MigrationInfo did={did} />
+      <Box sx={{ mb: 2 }}>
+        <FormLabel>Target chain</FormLabel>
+        <Select
+          placeholder="Please choose a target chain Id"
+          onChange={(_e, value) => {
+            setChain(value as string);
+          }}
+        >
+          {DEST_CHAINS.map((o) => (
+            <Option key={o.chainId} value={String(o.chainId)}>
+              {o.name}
+            </Option>
+          ))}
+        </Select>
+        {!chain && (
+          <Message
+            type="info"
+            text="Your ORGiD will be migrated to this chain"
+            sx={{ mt: 1 }}
+          />
+        )}
+      </Box>
+
       <form onSubmit={onSubmit}>
-        {buildForm(profileConfig, register, unregister, errors as FormErrors)}
+        <ProfileForm
+          config={profileConfig}
+          register={register}
+          unregister={unregister}
+          errors={errors as FormErrors}
+        />
         <Button onClick={onSubmit}>Submit</Button>
       </form>
-      <Message type="error" show={error !== undefined}>
+      <Message type="error" show={error !== undefined} sx={{ mb: 2 }}>
         {error}
       </Message>
+
+      <MigrationConfirmation
+        did={did}
+        chain={chain}
+        rawOrgJson={rawOrgJson}
+        onClose={(data) => {
+          setRawOrgJson(undefined);
+          if (data) {
+            navigate('/');
+          }
+        }}
+      />
     </>
   );
 };
