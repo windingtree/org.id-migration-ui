@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { Alert, Typography, AlertProps } from '@mui/joy';
+import { SxProps } from '@mui/joy/styles/types';
 import WarningIcon from '@mui/icons-material/Warning';
 import InfoIcon from '@mui/icons-material/Info';
 import ErrorIcon from '@mui/icons-material/Error';
@@ -11,6 +12,7 @@ export interface MessageProps {
   text?: string;
   children?: ReactNode;
   show?: boolean;
+  sx?: SxProps;
 }
 
 export type MessageConfig = Record<
@@ -36,7 +38,7 @@ const messageConfig: MessageConfig = {
   },
 };
 
-export const Message = ({ type, text, children, show = true }: MessageProps) => {
+export const Message = ({ type, text, children, show = true, sx }: MessageProps) => {
   if (!show) {
     return null;
   }
@@ -45,7 +47,7 @@ export const Message = ({ type, text, children, show = true }: MessageProps) => 
       color={messageConfig[type].color}
       variant="soft"
       startDecorator={messageConfig[type].icon}
-      sx={{ mb: 2 }}
+      sx={{ ...sx, mb: 2 }}
     >
       <Typography fontSize="sm">{children ?? (text || '')}</Typography>
     </Alert>
