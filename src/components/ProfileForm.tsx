@@ -53,7 +53,7 @@ export const buildStringOption = (
       : errors[scope]?.[option.name]?.message
     : errors[option.name]?.message;
   return (
-    <FormControl key={`str${option.name}${keyIndex}`}>
+    <FormControl key={`str${option.name}${keyIndex}`} sx={{ mb: 1 }}>
       <TextField
         {...register(fieldName, option.validation)}
         label={option.label}

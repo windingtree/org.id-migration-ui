@@ -63,3 +63,5 @@ export const getChain = (chainId: string | number): ChainConfig => {
 };
 
 export const BE_URI = process.env.REACT_APP_BE_URI || '';
+
+export const POLLER_TIMEOUT = 3000;

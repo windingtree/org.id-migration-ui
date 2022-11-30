@@ -10,6 +10,7 @@ import {
   Typography,
   CircularProgress,
   Box,
+  FormControl,
   FormLabel,
   Select,
   Option,
@@ -155,6 +156,11 @@ export const MigrationConfirmation = ({
           {chainName}
         </Typography>
 
+        <Typography sx={{ mb: 2 }}>
+          Migration process does not require any payments. All expenses will be paid by
+          WindingTree.
+        </Typography>
+
         <Message type="error" show={vcError !== undefined} sx={{ mb: 2 }}>
           {vcError}
         </Message>
@@ -186,8 +192,8 @@ export const MigrationConfirmation = ({
 };
 
 export const Profile = () => {
-  const chainRef = useRef();
-  const logoRef = useRef();
+  const chainRef = useRef(null);
+  const logoRef = useRef(null);
   const ctx = useContext(profileContext);
   const navigate = useNavigate();
   const { address } = useAccount();
@@ -274,7 +280,7 @@ export const Profile = () => {
 
       {loading && <CircularProgress size="md" />}
 
-      <Box sx={{ mb: 2 }} ref={chainRef}>
+      <FormControl sx={{ mb: 1 }} ref={chainRef}>
         <FormLabel required>Target chain</FormLabel>
         <Select
           placeholder="Please choose a target chain Id"
@@ -295,9 +301,9 @@ export const Profile = () => {
             sx={{ mt: 1 }}
           />
         )}
-      </Box>
+      </FormControl>
 
-      <Box ref={logoRef} />
+      <div ref={logoRef} />
       <ProfileImage label="Logotype" required onChange={setLogotype} sx={{ mb: 2 }} />
       {!logotype && (
         <Message

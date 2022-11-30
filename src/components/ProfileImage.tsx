@@ -13,7 +13,9 @@ import {
   AspectRatio,
   Button,
   IconButton,
+  FormControl,
   FormLabel,
+  CircularProgress,
 } from '@mui/joy';
 import ImageIcon from '@mui/icons-material/Image';
 import UploadIcon from '@mui/icons-material/Upload';
@@ -41,7 +43,7 @@ export const CustomUploadButton = asUploadButton(
       {...props}
       ref={ref as never}
       startDecorator={<UploadIcon />}
-      loading={loading}
+      endDecorator={loading && <CircularProgress size="sm" />}
       disabled={loading}
     >
       Upload image
@@ -110,11 +112,11 @@ export const ImageCard = ({ onChange }: ImageCardProps) => {
 
 export const ProfileImage = ({ label, required, onChange, sx }: ProfileImageProps) => {
   return (
-    <Box sx={sx}>
+    <FormControl sx={sx}>
       <Uploady method="POST" destination={{ url: `${BE_URI}/api/file` }}>
         <FormLabel required={required}>{label}</FormLabel>
         <ImageCard onChange={onChange} />
       </Uploady>
-    </Box>
+    </FormControl>
   );
 };
