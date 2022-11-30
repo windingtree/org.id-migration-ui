@@ -47,7 +47,7 @@ export const Message = ({ type, text, children, show = true, sx }: MessageProps)
       color={messageConfig[type].color}
       variant="soft"
       startDecorator={messageConfig[type].icon}
-      sx={{ ...sx, mb: 2 }}
+      sx={{ mb: 2, ...sx }}
     >
       <Typography fontSize="sm">{children ?? (text || '')}</Typography>
     </Alert>

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createContext, useCallback, useContext } from 'react';
+import { createContext, useCallback, useContext, useRef } from 'react';
 import { Wallet } from 'ethers';
 import { useAccount, useSigner } from 'wagmi';
 import { useMemo, useState, useEffect } from 'react';
@@ -24,6 +24,7 @@ import { createVC, SignedVC } from '@windingtree/org.id-auth/dist/vc';
 import { useOldOrgId } from '../hooks/useOldOrgId';
 import { RequireConnect } from '../components/RequireConnect';
 import { Message } from '../components/Message';
+import { ProfileImage } from '../components/ProfileImage';
 import { FormErrors, ProfileConfig, ProfileForm } from '../components/ProfileForm';
 import { centerEllipsis } from '../utils/strings';
 import {
@@ -186,6 +187,8 @@ export const MigrationConfirmation = ({
 };
 
 export const Profile = () => {
+  const chainRef = useRef();
+  const logoRef = useRef();
   const ctx = useContext(profileContext);
   const navigate = useNavigate();
   const { address } = useAccount();
@@ -195,6 +198,7 @@ export const Profile = () => {
     return result.orgId;
   }, [did]);
   const [chain, setChain] = useState<string | undefined>();
+  const [logotype, setLogotype] = useState<string | undefined>();
   const [rawOrgJson, setRawOrgJson] = useState<ORGJSON | undefined>();
   const {
     watch,
@@ -235,11 +239,19 @@ export const Profile = () => {
   }, [reset, did, orgJson]);
 
   const onSubmit = handleSubmit(async (d) => {
-    if (orgJson && orgId && address && chain) {
+    if (!chain) {
+      (chainRef.current as any).scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+    if (!logotype) {
+      (logoRef.current as any).scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+    if (orgJson && orgId && address && chain && logotype) {
       const orgJsonInput = {
         ...d,
         media: {
-          logo: orgJson?.[isUnit ? 'organizationalUnit' : 'legalEntity'].media?.logo,
+          logo: logotype,
         },
       } as unknown as ORGJSON;
       setRawOrgJson(buildOrgJson(orgJsonInput, orgId, chain, address));
@@ -266,8 +278,8 @@ export const Profile = () => {
 
       {loading && <CircularProgress size="md" />}
 
-      <Box sx={{ mb: 2 }}>
-        <FormLabel>Target chain</FormLabel>
+      <Box sx={{ mb: 2 }} ref={chainRef}>
+        <FormLabel required>Target chain</FormLabel>
         <Select
           placeholder="Please choose a target chain Id"
           onChange={(_e, value) => {
@@ -288,6 +300,16 @@ export const Profile = () => {
           />
         )}
       </Box>
+
+      <Box ref={logoRef} />
+      <ProfileImage label="Logotype" required onChange={setLogotype} sx={{ mb: 2 }} />
+      {!logotype && (
+        <Message
+          type="warn"
+          text="Please upload a logotype of your organization"
+          sx={{ mt: 1 }}
+        />
+      )}
 
       <form onSubmit={onSubmit}>
         <ProfileForm
