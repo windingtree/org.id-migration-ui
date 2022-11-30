@@ -25,7 +25,6 @@ export type FormErrors = any;
 
 export interface ProfileConfig {
   profileConfig?: ProfileOption[];
-  isUnit: boolean;
 }
 
 export interface ProfileFormProps {

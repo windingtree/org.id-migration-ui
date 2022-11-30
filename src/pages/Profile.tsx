@@ -210,16 +210,13 @@ export const Profile = () => {
   } = useForm<ProfileFormValues | ProfileUnitFormValues>();
   const watchForm = watch();
   const { orgJson, loading, error } = useOldOrgId(did);
-  const { profileConfig, isUnit } = useMemo<ProfileConfig>(() => {
+  const { profileConfig } = useMemo<ProfileConfig>(() => {
     let profileConfig: ProfileOption[] | undefined;
-    let isUnit = false;
     if (orgJson) {
       profileConfig = orgJson.organizationalUnit ? unitConfig : legalEntityConfig;
-      isUnit = orgJson.organizationalUnit !== undefined;
     }
     return {
       profileConfig,
-      isUnit,
     };
   }, [orgJson]);
 

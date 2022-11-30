@@ -14,7 +14,6 @@ import {
   Button,
   IconButton,
   FormLabel,
-  Typography,
 } from '@mui/joy';
 import ImageIcon from '@mui/icons-material/Image';
 import UploadIcon from '@mui/icons-material/Upload';
