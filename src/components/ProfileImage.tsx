@@ -1,8 +1,9 @@
-import { useState, forwardRef, useEffect } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 import Uploady, {
   useItemStartListener,
   useItemFinishListener,
   useItemErrorListener,
+  useUploadyContext,
 } from '@rpldy/uploady';
 import { asUploadButton } from '@rpldy/upload-button';
 import { SxProps } from '@mui/joy/styles/types';
@@ -16,6 +17,7 @@ import {
   FormControl,
   FormLabel,
   CircularProgress,
+  Input,
 } from '@mui/joy';
 import ImageIcon from '@mui/icons-material/Image';
 import UploadIcon from '@mui/icons-material/Upload';
@@ -24,6 +26,7 @@ import { BE_URI } from '../config';
 import { Message } from './Message';
 
 export interface ProfileImageProps {
+  url?: string;
   label: string;
   required?: boolean;
   onChange: (url?: string) => void;
@@ -31,6 +34,7 @@ export interface ProfileImageProps {
 }
 
 export interface ImageCardProps {
+  value?: string;
   onChange: (url?: string) => void;
 }
 
@@ -46,14 +50,16 @@ export const CustomUploadButton = asUploadButton(
       endDecorator={loading && <CircularProgress size="sm" />}
       disabled={loading}
     >
-      Upload image
+      Browse
     </Button>
   )),
 );
 
-export const ImageCard = ({ onChange }: ImageCardProps) => {
+export const ImageCard = ({ value, onChange }: ImageCardProps) => {
+  const ctx = useUploadyContext();
   const [loading, setLoading] = useState<boolean>(false);
-  const [url, setUrl] = useState<string | undefined>();
+  const [url, setUrl] = useState<string | undefined>(value);
+  const [customUrl, setCustomUrl] = useState<string>(value || '');
   const [error, setError] = useState<string | undefined>();
   useItemStartListener(() => {
     setError(undefined);
@@ -63,6 +69,7 @@ export const ImageCard = ({ onChange }: ImageCardProps) => {
     if (uploadResponse) {
       setLoading(false);
       setUrl(uploadResponse.data.url);
+      setCustomUrl(uploadResponse.data.url);
     }
   });
   useItemErrorListener(({ uploadResponse }) => {
@@ -70,7 +77,20 @@ export const ImageCard = ({ onChange }: ImageCardProps) => {
     setError(uploadResponse?.data?.message ?? 'Unknown error');
   });
   useEffect(() => {
+    if (value) {
+      setUrl(value);
+      setCustomUrl(value);
+    }
+  }, [value]);
+  useEffect(() => {
     onChange(url);
+    if (url && !url.startsWith('https://w3s.link/ipfs')) {
+      ctx.upload(url, {
+        destination: {
+          url: `${BE_URI}/api/fileUri`,
+        },
+      });
+    }
   }, [url]);
   const onReset = () => {
     setLoading(false);
@@ -95,13 +115,45 @@ export const ImageCard = ({ onChange }: ImageCardProps) => {
       </CardOverflow>
       <CardOverflow sx={{ p: 2 }}>
         <Box
-          sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
         >
           <CustomUploadButton extraProps={{ loading }} />
-          <IconButton variant="outlined" onClick={onReset}>
+          <IconButton variant="outlined" onClick={onReset} disabled={loading}>
             <CloseIcon />
           </IconButton>
         </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <FormControl sx={{ mt: 1 }} disabled={loading}>
+            <Input
+              value={customUrl}
+              onChange={({ target }) => {
+                setCustomUrl(target.value);
+              }}
+            />
+          </FormControl>
+          <IconButton
+            variant="outlined"
+            disabled={loading}
+            onClick={() => {
+              setUrl(customUrl);
+            }}
+          >
+            <UploadIcon />
+          </IconButton>
+        </Box>
+
         <Message type="error" show={error !== undefined} sx={{ mt: 1, mb: 0 }}>
           {error}
         </Message>
@@ -110,12 +162,18 @@ export const ImageCard = ({ onChange }: ImageCardProps) => {
   );
 };
 
-export const ProfileImage = ({ label, required, onChange, sx }: ProfileImageProps) => {
+export const ProfileImage = ({
+  url,
+  label,
+  required,
+  onChange,
+  sx,
+}: ProfileImageProps) => {
   return (
     <FormControl sx={sx}>
       <Uploady method="POST" destination={{ url: `${BE_URI}/api/file` }}>
         <FormLabel required={required}>{label}</FormLabel>
-        <ImageCard onChange={onChange} />
+        <ImageCard onChange={onChange} value={url} />
       </Uploady>
     </FormControl>
   );

@@ -96,6 +96,13 @@ export const MigrationConfirmation = ({
   };
 
   useEffect(() => {
+    if (rawOrgJson) {
+      // eslint-disable-next-line no-console
+      console.log('rawOrgJson:', rawOrgJson);
+    }
+  }, [rawOrgJson]);
+
+  useEffect(() => {
     if (vc) {
       // eslint-disable-next-line no-console
       console.log('VC:', vc);
@@ -215,13 +222,16 @@ export const Profile = () => {
   } = useForm<ProfileFormValues | ProfileUnitFormValues>();
   const watchForm = watch();
   const { orgJson, loading, error } = useOldOrgId(did);
-  const { profileConfig } = useMemo<ProfileConfig>(() => {
+  const { profileConfig, isUnit } = useMemo<ProfileConfig>(() => {
     let profileConfig: ProfileOption[] | undefined;
+    let isUnit: boolean | undefined;
     if (orgJson) {
       profileConfig = orgJson.organizationalUnit ? unitConfig : legalEntityConfig;
+      isUnit = orgJson.organizationalUnit !== undefined;
     }
     return {
       profileConfig,
+      isUnit,
     };
   }, [orgJson]);
 
@@ -304,7 +314,13 @@ export const Profile = () => {
       </FormControl>
 
       <div ref={logoRef} />
-      <ProfileImage label="Logotype" required onChange={setLogotype} sx={{ mb: 2 }} />
+      <ProfileImage
+        url={orgJson?.[isUnit ? 'organizationalUnit' : 'legalEntity'].media?.logo}
+        label="Logotype"
+        onChange={setLogotype}
+        required
+        sx={{ mb: 2 }}
+      />
       {!logotype && (
         <Message
           type="warn"
@@ -320,7 +336,9 @@ export const Profile = () => {
           unregister={unregister}
           errors={errors as FormErrors}
         />
-        <Button onClick={onSubmit}>Submit</Button>
+        <Button type="submit" size="lg" onClick={onSubmit} sx={{ my: 2 }}>
+          Submit
+        </Button>
       </form>
       <Message type="error" show={error !== undefined} sx={{ mb: 2 }}>
         {error}
