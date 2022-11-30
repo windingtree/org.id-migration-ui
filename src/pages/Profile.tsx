@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useRef } from 'react';
 import { Wallet } from 'ethers';
 import { useAccount, useSigner } from 'wagmi';
 import { useMemo, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import {
   Button,
@@ -17,7 +17,6 @@ import {
   ModalDialog,
   ModalClose,
 } from '@mui/joy';
-import { useParams } from 'react-router-dom';
 import { ORGJSON } from '@windingtree/org.json-schema/types/org.json';
 import { parseDid } from '@windingtree/org.id-utils/dist/parsers';
 import { createVC, SignedVC } from '@windingtree/org.id-auth/dist/vc';

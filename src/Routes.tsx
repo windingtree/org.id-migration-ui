@@ -20,6 +20,7 @@ export type RouteConfig = {
   label: string;
   protected?: boolean;
   menu?: boolean;
+  children?: RouteConfig[];
 };
 
 export type Routes = RouteConfig[];
@@ -47,6 +48,14 @@ export const pagesRoutes: Routes = [
     title: 'Resolve ORGiD',
     label: 'Resolve',
     menu: true,
+    children: [
+      {
+        path: ':did',
+        element: <Resolve />,
+        title: 'Resolve ORGiD',
+        label: 'Resolve',
+      },
+    ],
   },
   {
     path: '/create',

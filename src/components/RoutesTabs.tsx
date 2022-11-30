@@ -1,15 +1,26 @@
+import { useMemo } from 'react';
 import { Link, useLocation, useMatch } from 'react-router-dom';
 import { Tabs, TabList, Tab } from '@mui/joy';
 import { pagesRoutes } from '../Routes';
 
 export const RoutesTabs = () => {
   const { pathname } = useLocation();
-  const match = useMatch('/migrate/:did');
+  const matchMigrate = useMatch('/migrate/:did');
+  const matchResolve = useMatch('/resolve/:did');
+  const rootPath = useMemo(() => {
+    if (matchMigrate) {
+      return '/';
+    }
+    if (matchResolve) {
+      return '/resolve';
+    }
+    return pathname;
+  }, [pathname]);
   return (
     <Tabs
       aria-label="What do you want to do?"
       defaultValue={'/'}
-      value={match ? '/' : pathname}
+      value={rootPath}
       sx={{ p: 1, borderRadius: 'lg' }}
     >
       <TabList>
