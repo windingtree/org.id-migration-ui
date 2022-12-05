@@ -77,7 +77,7 @@ export const Migrate = () => {
                 disabled={!['ready', 'completed'].includes(d.state)}
                 onClick={() =>
                   navigate(
-                    d.state === 'completed' ? `resolve/${d.did}` : `migrate/${d.did}`,
+                    d.state === 'completed' ? `resolve/${d.newDid}` : `migrate/${d.did}`,
                   )
                 }
               >

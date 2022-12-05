@@ -56,6 +56,8 @@ export type Did = string;
 export interface DidWithState {
   /** ORGiD DID */
   did: Did;
+  /** ORGiD DID */
+  newDid?: Did;
   /** An ORGiD migration request progress state */
   state: RequestState;
 }
@@ -79,6 +81,12 @@ export interface ApiDidParams {
 export interface ApiRequestParams {
   /** Migration request Id */
   id: RequestId;
+}
+
+/** In-body API /fileUri parameters */
+export interface ApiFileUriParams {
+  /** File URI */
+  file: string;
 }
 
 /** Migration request Id */
@@ -111,6 +119,17 @@ export interface RequestStatus {
   timestamp: number;
   /** ORGiD DID */
   did: Did;
+  /** ORGiD DID */
+  newDid: Did;
   /** An ORGiD migration request progress state */
   state: RequestState;
+}
+
+/** Serialized ORG.JSON doc */
+export type OrgJsonString = string;
+
+/** File upload API response */
+export interface UploadedFile {
+  /** Url of the uploaded file */
+  url: string;
 }
