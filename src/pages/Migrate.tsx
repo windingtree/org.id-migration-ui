@@ -49,7 +49,7 @@ export const Migrate = () => {
     <>
       <Box sx={{ mb: 2, display: 'flex', flexDirection: 'row', gap: 2 }}>
         <Box>
-          <ConnectButton />
+          <ConnectButton chainStatus={'none'} showBalance={false} />
         </Box>
         <Box>
           <Button variant="soft" onClick={reload} loading={loading} disabled={loading}>

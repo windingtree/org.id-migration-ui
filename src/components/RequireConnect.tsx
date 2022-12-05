@@ -12,7 +12,7 @@ export const RequireConnect = () => {
         Please connect your wallet to continue
       </Message>
       <Box sx={{ mb: 2 }}>
-        <ConnectButton />
+        <ConnectButton chainStatus={'none'} showBalance={false} />
       </Box>
     </>
   );
