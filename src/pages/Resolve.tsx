@@ -6,8 +6,8 @@ import { Report } from '../components/Report';
 import { useOrgIdReport } from '../hooks/useOrgIdReport';
 
 export const Resolve = () => {
-  const [newDid, setDid] = useState<string>();
   const { did } = useParams();
+  const [newDid, setDid] = useState<string>(did ?? '');
   const navigate = useNavigate();
   const { report, loading, loaded, error } = useOrgIdReport(did);
 
@@ -19,7 +19,7 @@ export const Resolve = () => {
     <>
       <Stack spacing={1} mb={1}>
         <TextField
-          defaultValue={did ?? ''}
+          defaultValue={newDid}
           onChange={(e) => setDid(e.currentTarget.value)}
           id="outlined-basic"
           label="DID"

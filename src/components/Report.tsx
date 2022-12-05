@@ -10,6 +10,7 @@ import {
 import { ReactElement } from 'react';
 import { ResolutionResponse } from '../hooks/useOrgIdReport';
 import { getEntityData } from '../utils/orgJson';
+import { normalizeIpfsLink } from '../utils/strings';
 
 const TableRow = ({ label, data }: { label: string; data: ReactElement }) => (
   <Stack direction="row" spacing={1} justifyContent="flex-start">
@@ -34,6 +35,7 @@ export const Report = ({ report }: { report: ResolutionResponse | undefined }) =
   }
   const profileData = getEntityData(report.didDocument);
   const orgType = report.didDocument.legalEntity ? 'Legal Entity' : 'Organizational Unit';
+  const ipfsLink = normalizeIpfsLink(report.didDocumentMetadata.data.orgJsonUri);
 
   return (
     <>
@@ -75,7 +77,7 @@ export const Report = ({ report }: { report: ResolutionResponse | undefined }) =
           <TableRow
             label="Link"
             data={
-              <Link href={report.didDocumentMetadata.data.orgJsonUri} target="_blank">
+              <Link href={ipfsLink} target="_blank">
                 {report.didDocumentMetadata.data.orgJsonUri}
               </Link>
             }
