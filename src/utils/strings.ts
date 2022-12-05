@@ -7,3 +7,6 @@ export const centerEllipsis = (text: string, width = 4, prefix = 2): string =>
         )}`
       : text
     : '';
+
+export const normalizeIpfsLink = (rawLink) =>
+  rawLink.replace('ipfs://', 'https://w3s.link/ipfs/');
