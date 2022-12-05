@@ -220,7 +220,7 @@ export const Profile = () => {
     unregister,
     handleSubmit,
     formState: { errors },
-  } = useForm<ProfileFormValues | ProfileUnitFormValues>();
+  } = useForm<ProfileFormValues | ProfileUnitFormValues>({ mode: 'onBlur' });
   const watchForm = watch();
   const { orgJson, loading, error } = useOldOrgId(did);
   const { profileConfig, isUnit } = useMemo<ProfileConfig>(() => {

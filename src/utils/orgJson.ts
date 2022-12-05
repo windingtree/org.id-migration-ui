@@ -76,6 +76,30 @@ interface EntityData {
   country: string;
 }
 
+export const trimValidatorConfig = {
+  onBlur: ({ target }) => {
+    target.value = typeof target.value === 'string' ? target.value.trim() : '';
+    return true;
+  },
+  setValueAs: (value) => {
+    return typeof value === 'string' ? value.trim() : value;
+  },
+};
+
+export const minLengthValidatorConfig = (value: number) => ({
+  minLength: {
+    value,
+    message: `Field cannot be shorter than ${value} symbols`,
+  },
+});
+
+export const maxLengthValidatorConfig = (value: number) => ({
+  maxLength: {
+    value,
+    message: `Field name cannot be larger than ${value} symbols`,
+  },
+});
+
 export const addressGroupConfig: ProfileOption[] = [
   {
     name: 'country',
@@ -86,7 +110,11 @@ export const addressGroupConfig: ProfileOption[] = [
     required: true,
     validation: {
       required: 'Country name is required',
-      pattern: regex.country,
+      ...trimValidatorConfig,
+      pattern: {
+        value: regex.country,
+        message: 'Invalid country code',
+      },
     },
   },
   {
@@ -98,6 +126,7 @@ export const addressGroupConfig: ProfileOption[] = [
     required: true,
     validation: {
       required: 'Subdivision is required',
+      ...trimValidatorConfig,
     },
   },
   {
@@ -109,6 +138,7 @@ export const addressGroupConfig: ProfileOption[] = [
     required: true,
     validation: {
       required: 'Locality is required',
+      ...trimValidatorConfig,
     },
   },
   {
@@ -120,6 +150,7 @@ export const addressGroupConfig: ProfileOption[] = [
     required: true,
     validation: {
       required: 'Postal code is required',
+      ...trimValidatorConfig,
     },
   },
   {
@@ -131,6 +162,7 @@ export const addressGroupConfig: ProfileOption[] = [
     required: true,
     validation: {
       required: 'Street address is required',
+      ...trimValidatorConfig,
     },
   },
   {
@@ -152,6 +184,7 @@ export const contactGroupConfig: ProfileOption[] = [
     required: true,
     validation: {
       required: 'Contact function is required',
+      ...trimValidatorConfig,
     },
   },
   {
@@ -163,6 +196,7 @@ export const contactGroupConfig: ProfileOption[] = [
     required: true,
     validation: {
       required: 'Contact name is required',
+      ...trimValidatorConfig,
     },
   },
   {
@@ -172,7 +206,11 @@ export const contactGroupConfig: ProfileOption[] = [
     placeholder: '+1234567890',
     type: 'string',
     validation: {
-      pattern: regex.phone,
+      pattern: {
+        value: regex.phone,
+        message: 'Invalid phone number',
+      },
+      ...trimValidatorConfig,
     },
   },
   {
@@ -183,8 +221,12 @@ export const contactGroupConfig: ProfileOption[] = [
     type: 'string',
     required: true,
     validation: {
-      required: 'Contact email number is required',
-      pattern: regex.email,
+      required: 'Email address is required',
+      pattern: {
+        value: regex.email,
+        message: 'Invalid email address',
+      },
+      ...trimValidatorConfig,
     },
   },
 ];
@@ -199,8 +241,9 @@ export const legalEntityConfig: ProfileOption[] = [
     required: true,
     validation: {
       required: 'Legal name is required',
-      minLength: 2,
-      maxLength: 100,
+      ...trimValidatorConfig,
+      ...minLengthValidatorConfig(2),
+      ...maxLengthValidatorConfig(100),
     },
   },
   {
@@ -212,8 +255,9 @@ export const legalEntityConfig: ProfileOption[] = [
     required: true,
     validation: {
       required: 'Legal type is required',
-      minLength: 2,
-      maxLength: 100,
+      ...trimValidatorConfig,
+      ...minLengthValidatorConfig(2),
+      ...maxLengthValidatorConfig(100),
     },
   },
   {
@@ -225,8 +269,9 @@ export const legalEntityConfig: ProfileOption[] = [
     required: true,
     validation: {
       required: 'Registry code is required',
-      minLength: 2,
-      maxLength: 100,
+      ...trimValidatorConfig,
+      ...minLengthValidatorConfig(2),
+      ...maxLengthValidatorConfig(100),
     },
   },
   {
@@ -245,8 +290,9 @@ export const legalEntityConfig: ProfileOption[] = [
         required: true,
         validation: {
           required: 'Identifier type is required',
-          minLength: 2,
-          maxLength: 100,
+          ...trimValidatorConfig,
+          ...minLengthValidatorConfig(2),
+          ...maxLengthValidatorConfig(100),
         },
       },
       {
@@ -258,8 +304,9 @@ export const legalEntityConfig: ProfileOption[] = [
         required: true,
         validation: {
           required: 'Identifier value is required',
-          minLength: 2,
-          maxLength: 100,
+          ...trimValidatorConfig,
+          ...minLengthValidatorConfig(2),
+          ...maxLengthValidatorConfig(100),
         },
       },
     ],
@@ -300,8 +347,9 @@ export const unitConfig: ProfileOption[] = [
     required: true,
     validation: {
       required: 'Unit name is required',
-      minLength: 2,
-      maxLength: 100,
+      ...trimValidatorConfig,
+      ...minLengthValidatorConfig(2),
+      ...maxLengthValidatorConfig(100),
     },
   },
   {
@@ -313,8 +361,9 @@ export const unitConfig: ProfileOption[] = [
     required: true,
     validation: {
       required: 'Unit description is required',
-      minLength: 5,
-      maxLength: 200,
+      ...trimValidatorConfig,
+      ...minLengthValidatorConfig(5),
+      ...maxLengthValidatorConfig(200),
     },
   },
   {
@@ -327,8 +376,9 @@ export const unitConfig: ProfileOption[] = [
     required: true,
     validation: {
       required: 'Unit type is required',
-      minLength: 2,
-      maxLength: 100,
+      ...trimValidatorConfig,
+      ...minLengthValidatorConfig(2),
+      ...maxLengthValidatorConfig(100),
     },
   },
   {
@@ -356,7 +406,11 @@ export const unitConfig: ProfileOption[] = [
     required: true,
     validation: {
       required: 'Logotype is required',
-      pattern: regex.uriHttp,
+      ...trimValidatorConfig,
+      pattern: {
+        value: regex.uriHttp,
+        message: 'Invalid logotype URI',
+      },
     },
   },
 ];
