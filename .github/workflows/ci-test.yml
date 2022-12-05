@@ -32,6 +32,7 @@ jobs:
           GENERATE_SOURCEMAP: false
           REACT_APP_ENV: stage
           REACT_APP_BE_URI: https://api.test-orgid-migration.windingtree.com
+          REACT_APP_VALIDATOR_URI: https://qa.orgid-validator-v2.simard.io
         run: |
           rm -rf ./build
           yarn build

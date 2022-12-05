@@ -16,7 +16,7 @@ export const checkEnvVariables = (vars: string[]): void =>
 
 checkEnvVariables(['REACT_APP_BE_URI', 'REACT_APP_VALIDATOR_URI']);
 
-const environment = process.env['REACT_APP_ENV'] || 'staging';
+const environment = process.env['REACT_APP_ENV'] || 'stage';
 
 export const CHAINS: ChainConfig[] = [
   {
