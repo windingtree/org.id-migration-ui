@@ -27,7 +27,7 @@ export const StatusIcon = ({ state }: { state: string }) => {
   if (!state) {
     return null;
   }
-  return icons[state];
+  return <div title={state}>{icons[state]}</div>;
 };
 
 export const Migrate = () => {
@@ -57,6 +57,10 @@ export const Migrate = () => {
           </Button>
         </Box>
       </Box>
+      <Message type="info" show={true} sx={{ maxWidth: 500 }}>
+        Please choose an ORGiD DID from the list below and complete the migration profile
+        form. Migration status will be displayed by a right side of the DID
+      </Message>
       <Message type="warn" show={address !== undefined && loaded && !data}>
         It seems that account {address} does not own any ORGiDs
       </Message>
