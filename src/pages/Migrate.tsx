@@ -13,7 +13,7 @@ import { usePoller } from '../hooks/usePoller';
 import { RequireConnect } from '../components/RequireConnect';
 import { Message } from '../components/Message';
 import { EllipsisListButton } from '../components/EllipsisListButton';
-import { POLLER_TIMEOUT } from '../config';
+import { BE_URI, POLLER_TIMEOUT } from '../config';
 
 const icons = {
   ready: null,
@@ -34,6 +34,7 @@ export const Migrate = () => {
   const navigate = useNavigate();
   const { address } = useAccount();
   const { data, loading, loaded, error, errorCode, reload } = useApi<Dids>(
+    BE_URI,
     'GET',
     `api/dids/${address}`,
     address !== undefined,

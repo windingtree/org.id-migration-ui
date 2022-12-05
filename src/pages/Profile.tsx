@@ -39,7 +39,7 @@ import {
 } from '../utils/orgJson';
 import { useApi } from '../hooks/useApi';
 import { RequestStatus } from '../common/types';
-import { DEST_CHAINS, getChain } from '../config';
+import { BE_URI, DEST_CHAINS, getChain } from '../config';
 
 export interface ValidationError {
   message: string;
@@ -80,6 +80,7 @@ export const MigrationConfirmation = ({
   const [vc, setVc] = useState<SignedVC | undefined>();
   const [vcError, setVcError] = useState<string | undefined>();
   const { data, loading, error, reset } = useApi<RequestStatus>(
+    BE_URI,
     'POST',
     'api/request',
     did !== undefined && chain !== undefined && vc !== undefined,
