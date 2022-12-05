@@ -8,7 +8,6 @@ import {
 } from 'react';
 import axios, { Method, AxiosRequestConfig, AxiosError } from 'axios';
 import Qs from 'qs';
-import { BE_URI } from '../config';
 
 // @todo Replace this definition when this issue will be fixed https://github.com/axios/axios/issues/5126
 export enum HttpStatusCode {
@@ -106,6 +105,7 @@ export const hookContext = createContext<Record<string, unknown>>({});
  );
  */
 export const useApi = <T>(
+  endpoint: string,
   method: Method,
   url: string,
   acceptance: boolean,
@@ -124,7 +124,7 @@ export const useApi = <T>(
       `${method}:${url}${
         method.toLocaleLowerCase() === 'get' ? JSON.stringify(params) : ''
       }`,
-    [method, url],
+    [method, url, params],
   );
   const data = useMemo(() => ctx[key] as T | undefined, [ctx[key]]);
 
@@ -147,7 +147,7 @@ export const useApi = <T>(
       try {
         const request: AxiosRequestConfig = {
           method,
-          url: `${BE_URI}/${url}`,
+          url: `${endpoint}/${url}`,
           params,
           paramsSerializer: {
             serialize: paramsSerializer,
@@ -173,7 +173,7 @@ export const useApi = <T>(
         setLoaded(true);
       }
     },
-    [acceptance, method, url],
+    [acceptance, method, url, endpoint, key],
   );
 
   const reload = useCallback(() => load(true), [load]);

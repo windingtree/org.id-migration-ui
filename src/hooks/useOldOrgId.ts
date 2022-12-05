@@ -1,3 +1,4 @@
+import { BE_URI } from '../config';
 import { useApi, HttpStatusCode } from '../hooks/useApi';
 
 export interface UseOldOrgIdHook {
@@ -14,7 +15,7 @@ export interface UseOldOrgIdHook {
 export const useOldOrgId = (did?: string): UseOldOrgIdHook => {
   const { data, loading, loaded, error, errorCode, reload } = useApi<
     Record<string, unknown>
-  >('GET', 'api/did', did !== undefined, { did });
+  >(BE_URI, 'GET', 'api/did', did !== undefined, { did });
   return {
     orgId: did,
     orgJson: data,

@@ -8,6 +8,7 @@ import {
   ListDivider,
   CircularProgress,
 } from '@mui/joy';
+import { BE_URI } from '../config';
 
 export interface MigrationInfoProps {
   did?: string;
@@ -16,6 +17,7 @@ export interface MigrationInfoProps {
 export const MigrationInfo = ({ did }: MigrationInfoProps) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data, loading, loaded, error } = useApi<RequestStatus>(
+    BE_URI,
     'GET',
     'api/request/did',
     did !== undefined,

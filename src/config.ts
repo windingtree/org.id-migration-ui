@@ -14,7 +14,7 @@ export const checkEnvVariables = (vars: string[]): void =>
     }
   });
 
-checkEnvVariables(['REACT_APP_BE_URI']);
+checkEnvVariables(['REACT_APP_BE_URI', 'REACT_APP_VALIDATOR_URI']);
 
 const environment = process.env['REACT_APP_ENV'] || 'staging';
 
@@ -63,5 +63,6 @@ export const getChain = (chainId: string | number): ChainConfig => {
 };
 
 export const BE_URI = process.env.REACT_APP_BE_URI || '';
+export const VALIDATOR_URI = process.env.REACT_APP_VALIDATOR_URI || '';
 
 export const POLLER_TIMEOUT = 3000;

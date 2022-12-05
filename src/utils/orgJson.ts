@@ -66,6 +66,16 @@ export interface ProfileUnitFormValues {
   logo: string;
 }
 
+interface EntityData {
+  logo: string;
+  type: string;
+  name: string;
+  streetAddress: string;
+  postalCode: string;
+  locality: string;
+  country: string;
+}
+
 export const addressGroupConfig: ProfileOption[] = [
   {
     name: 'country',
@@ -527,4 +537,42 @@ export const buildOrgJson = (
       ),
     ],
   };
+};
+
+export const getEntityData = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  orgJson?: Record<string, any>,
+): EntityData | undefined => {
+  const data: EntityData = {
+    logo: '',
+    type: '',
+    name: '',
+    streetAddress: '',
+    postalCode: '',
+    locality: '',
+    country: '',
+  };
+
+  if (!orgJson) {
+    return undefined;
+  }
+  const isUnit = !!orgJson.organizationalUnit;
+  if (isUnit) {
+    data.logo = orgJson?.organizationalUnit?.media?.logo || '';
+    data.type = orgJson?.organizationalUnit?.type || '';
+    data.name = orgJson?.organizationalUnit?.name || '';
+    data.country = orgJson?.organizationalUnit?.address?.country || '';
+    data.locality = orgJson?.organizationalUnit?.address?.locality || '';
+    data.postalCode = orgJson?.organizationalUnit?.address?.postalCode || '';
+    data.streetAddress = orgJson?.organizationalUnit?.address?.streetAddress || '';
+  } else {
+    data.logo = orgJson?.legalEntity?.media?.logo || '';
+    data.name = orgJson?.legalEntity?.legalName || '';
+    data.type = orgJson?.legalEntity?.legalType || '';
+    data.country = orgJson?.legalEntity?.registeredAddress?.country || '';
+    data.locality = orgJson?.legalEntity?.registeredAddress?.locality || '';
+    data.postalCode = orgJson?.legalEntity?.registeredAddress?.postalCode || '';
+    data.streetAddress = orgJson?.legalEntity?.registeredAddress?.streetAddress || '';
+  }
+  return data;
 };
