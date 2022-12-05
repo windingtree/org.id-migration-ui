@@ -21,7 +21,7 @@ import {
 } from '@mui/joy';
 import ImageIcon from '@mui/icons-material/Image';
 import UploadIcon from '@mui/icons-material/Upload';
-import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { BE_URI } from '../config';
 import { Message } from './Message';
 
@@ -96,6 +96,7 @@ export const ImageCard = ({ value, onChange }: ImageCardProps) => {
     setLoading(false);
     setError(undefined);
     setUrl(undefined);
+    setCustomUrl('');
   };
   return (
     <Card variant="outlined" sx={{ maxWidth: 375 }}>
@@ -124,7 +125,7 @@ export const ImageCard = ({ value, onChange }: ImageCardProps) => {
         >
           <CustomUploadButton extraProps={{ loading }} />
           <IconButton variant="outlined" onClick={onReset} disabled={loading}>
-            <CloseIcon />
+            <DeleteIcon />
           </IconButton>
         </Box>
         <Box
@@ -145,7 +146,7 @@ export const ImageCard = ({ value, onChange }: ImageCardProps) => {
           </FormControl>
           <IconButton
             variant="outlined"
-            disabled={loading}
+            disabled={loading || customUrl.trim() === ''}
             onClick={() => {
               setUrl(customUrl);
             }}
