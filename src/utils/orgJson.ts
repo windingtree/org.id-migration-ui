@@ -40,11 +40,18 @@ export interface RegisteredAddress {
   premise: string;
 }
 
+export interface Messenger {
+  type: string;
+  value: string;
+}
+
 export interface Contact {
   function: string;
-  name: string;
-  phone: string;
-  email: string;
+  name?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  messengers?: Messenger[];
 }
 
 export interface ProfileFormValues {
@@ -219,15 +226,60 @@ export const contactGroupConfig: ProfileOption[] = [
     label: 'Email',
     placeholder: 'email@spam.com',
     type: 'string',
-    required: true,
     validation: {
-      required: 'Email address is required',
       pattern: {
         value: regex.email,
         message: 'Invalid email address',
       },
       ...trimValidatorConfig,
     },
+  },
+  {
+    name: 'website',
+    path: 'website',
+    label: 'Website',
+    placeholder: 'https://website.web',
+    type: 'string',
+    validation: {
+      pattern: {
+        value: regex.uriHttp,
+        message: 'Invalid website URI',
+      },
+      ...trimValidatorConfig,
+    },
+  },
+  {
+    name: 'messengers',
+    path: 'legalEntity.contacts[].messengers',
+    label: 'Messengers',
+    type: 'group',
+    groupLayout: 'column',
+    group: [
+      {
+        name: 'type',
+        path: 'type',
+        label: 'Type',
+        placeholder: 'facebook, instagram, etc',
+        type: 'string',
+        required: true,
+        validation: {
+          required: 'Messenger type is required',
+          ...trimValidatorConfig,
+        },
+      },
+      {
+        name: 'value',
+        path: 'value',
+        label: 'Value',
+        placeholder: 'account',
+        type: 'string',
+        required: true,
+        validation: {
+          required: 'Messenger account value is required',
+          ...trimValidatorConfig,
+        },
+      },
+    ],
   },
 ];
 
@@ -429,6 +481,13 @@ export const defaultContact = {
   name: '',
   phone: '',
   email: '',
+  website: '',
+  messengers: [
+    {
+      type: '',
+      value: '',
+    },
+  ],
 };
 
 export const defaultLegalEntityProfile = () =>
@@ -463,6 +522,13 @@ export const defaultUnitProfile = () =>
     },
   ) as unknown as ProfileUnitFormValues;
 
+export const normalizeUri = (uri?: string): string => {
+  if (uri && uri !== '') {
+    return uri.startsWith('https://') ? uri : `https://${uri.replace('http://', '')}`;
+  }
+  return '';
+};
+
 export const getDefaultProfile = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   orgJson?: Record<string, any>,
@@ -487,26 +553,35 @@ export const getDefaultProfile = (
       streetAddress: orgJson?.organizationalUnit?.address?.streetAddress || '',
       premise: orgJson?.organizationalUnit?.address?.premise || '',
     };
-    for (let i = 0; i < orgJson?.organizationalUnit?.contacts ?? 1; i++) {
-      template.contacts.push({
+    for (let i = 0; i < orgJson?.organizationalUnit?.contacts.length ?? 1; i++) {
+      template.contacts[i] = {
         function: orgJson?.organizationalUnit?.contacts[i].function || '',
         name: orgJson?.organizationalUnit?.contacts[i].name || '',
         phone: orgJson?.organizationalUnit?.contacts[i].phone || '',
         email: orgJson?.organizationalUnit?.contacts[i].email || '',
-      });
+        website: normalizeUri(orgJson?.organizationalUnit?.contacts[i]?.website || ''),
+        messengers: [],
+      };
+      const messengers = {
+        facebook: orgJson?.organizationalUnit?.contacts[i]?.facebook,
+        instagram: orgJson?.organizationalUnit?.contacts[i]?.instagram,
+        twitter: orgJson?.organizationalUnit?.contacts[i]?.twitter,
+      };
+      for (const messenger of Object.keys(messengers)) {
+        if (messenger && messengers[messenger]) {
+          template.contacts[i].messengers?.push({
+            type: messenger,
+            value: messengers[messenger],
+          });
+        }
+      }
     }
     template.logo = orgJson?.organizationalUnit?.media?.logo || '';
   } else {
     template = defaultLegalEntityProfile();
     template.legalName = orgJson?.legalEntity?.legalName || '';
     template.legalType = orgJson?.legalEntity?.legalType || '';
-    template.registryCode = orgJson?.legalEntity?.registryCode || '';
-    for (let i = 0; i < orgJson?.legalEntity?.contacts ?? 1; i++) {
-      template.identifier.push({
-        type: orgJson?.legalEntity?.identifier[i].type || '',
-        value: orgJson?.legalEntity?.identifier[i].value || '',
-      });
-    }
+    template.registryCode = orgJson?.legalEntity?.legalIdentifier || '';
     template.registeredAddress = {
       country: orgJson?.legalEntity?.registeredAddress?.country || '',
       subdivision: orgJson?.legalEntity?.registeredAddress?.subdivision || '',
@@ -515,13 +590,28 @@ export const getDefaultProfile = (
       streetAddress: orgJson?.legalEntity?.registeredAddress?.streetAddress || '',
       premise: orgJson?.legalEntity?.registeredAddress?.premise || '',
     };
-    for (let i = 0; i < orgJson?.legalEntity?.contacts ?? 1; i++) {
-      template.contacts.push({
-        function: orgJson?.legalEntity?.contacts[0].function || '',
-        name: orgJson?.legalEntity?.contacts[0].name || '',
-        phone: orgJson?.legalEntity?.contacts[0].phone || '',
-        email: orgJson?.legalEntity?.contacts[0].email || '',
-      });
+    for (let i = 0; i < orgJson?.legalEntity?.contacts.length ?? 1; i++) {
+      template.contacts[i] = {
+        function: orgJson?.legalEntity?.contacts[i]?.function || '',
+        name: orgJson?.legalEntity?.contacts[i]?.name || '',
+        phone: orgJson?.legalEntity?.contacts[i]?.phone || '',
+        email: orgJson?.legalEntity?.contacts[i]?.email || '',
+        website: normalizeUri(orgJson?.legalEntity?.contacts[i]?.website || ''),
+        messengers: [],
+      };
+      const messengers = {
+        facebook: orgJson?.legalEntity?.contacts[i]?.facebook,
+        instagram: orgJson?.legalEntity?.contacts[i]?.instagram,
+        twitter: orgJson?.legalEntity?.contacts[i]?.twitter,
+      };
+      for (const messenger of Object.keys(messengers)) {
+        if (messenger && messengers[messenger]) {
+          template.contacts[i].messengers?.push({
+            type: messenger,
+            value: messengers[messenger],
+          });
+        }
+      }
     }
     template.logo = orgJson?.legalEntity?.media?.logo || '';
   }

@@ -1,5 +1,5 @@
-import { ReactNode, useState } from 'react';
-import { UseFormRegister, UseFormUnregister } from 'react-hook-form';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { UseFormRegister, UseFormUnregister, useFormContext } from 'react-hook-form';
 import Add from '@mui/icons-material/Add';
 import Remove from '@mui/icons-material/Remove';
 import { useMediaQuery } from '@mui/material';
@@ -14,11 +14,7 @@ import {
   Divider,
   useTheme,
 } from '@mui/joy';
-import {
-  ProfileOption,
-  ProfileFormValues,
-  ProfileUnitFormValues,
-} from '../utils/orgJson';
+import { ProfileOption } from '../utils/orgJson';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type FormErrors = any;
@@ -30,22 +26,21 @@ export interface ProfileConfig {
 
 export interface ProfileFormProps {
   config: ProfileOption[] | undefined;
-  register: UseFormRegister<ProfileFormValues | ProfileUnitFormValues>;
-  unregister: UseFormUnregister<ProfileFormValues | ProfileUnitFormValues>;
-  errors: FormErrors;
 }
 
 export const buildStringOption = (
   option: ProfileOption,
-  register: UseFormRegister<ProfileFormValues | ProfileUnitFormValues>,
-  errors: FormErrors,
   scope?: string,
   scopeIndex?: number,
   keyIndex?: number,
 ): ReactNode => {
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext();
   const fieldName = (
     scope
-      ? `${scope}${scopeIndex !== undefined ? '[' + scopeIndex + ']' : ''}.${option.name}`
+      ? `${scope}${scopeIndex !== undefined ? '.' + scopeIndex : ''}.${option.name}`
       : option.name
   ) as any; // eslint-disable-line @typescript-eslint/no-explicit-any
   const error = scope
@@ -67,14 +62,21 @@ export const buildStringOption = (
   );
 };
 
-export const buildArrayOption = (
-  option: ProfileOption,
-  register: UseFormRegister<ProfileFormValues | ProfileUnitFormValues>,
-  unregister: UseFormUnregister<ProfileFormValues | ProfileUnitFormValues>,
-  errors: FormErrors,
-  keyIndex?: number,
-): ReactNode => {
+export const buildArrayOption = (option: ProfileOption, keyIndex?: number): ReactNode => {
+  const {
+    register,
+    unregister,
+    getValues,
+    setValue,
+    formState: { errors },
+  } = useFormContext();
   const [arrayItems, setArrayItems] = useState(1);
+  const scopeValue = getValues(option.name);
+  useEffect(() => {
+    if (Array.isArray(scopeValue)) {
+      setArrayItems(scopeValue.length);
+    }
+  }, [scopeValue]);
   return (
     <Sheet
       variant="outlined"
@@ -89,8 +91,7 @@ export const buildArrayOption = (
       {Array(arrayItems)
         .fill(null)
         .map((_, index) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const fieldName = `${option.name}[${index}]` as any;
+          const fieldName = `${option.name}.${index}`;
           const error = errors[option.name]?.[index]?.message;
           return (
             <FormControl key={`itm${option.name}${index}`} sx={{ mb: 1 }}>
@@ -121,9 +122,10 @@ export const buildArrayOption = (
             startDecorator={<Remove />}
             sx={{ mt: 1 }}
             onClick={() => {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              unregister(`${option.name}[${arrayItems - 1}]` as any);
               setArrayItems(arrayItems - 1);
+              scopeValue.pop();
+              setValue(option.name, scopeValue);
+              unregister(`${option.name}.${arrayItems - 1}`);
             }}
           >
             Reduce {option.label}
@@ -136,15 +138,29 @@ export const buildArrayOption = (
 
 export const buildGroupOption = (
   option: ProfileOption,
-  register: UseFormRegister<ProfileFormValues | ProfileUnitFormValues>,
-  unregister: UseFormUnregister<ProfileFormValues | ProfileUnitFormValues>,
-  errors: FormErrors,
   allowAddGroup = false,
+  scope?: string,
+  scopeIndex?: number,
   keyIndex?: number,
 ): ReactNode => {
   const theme = useTheme();
   const isSm = useMediaQuery(theme.breakpoints.down('md'));
+  const {
+    unregister,
+    getValues,
+    setValue,
+    formState: { errors },
+  } = useFormContext();
   const [groupItems, setGroupItems] = useState(1);
+  const scopeName = scope
+    ? `${scope}${scopeIndex !== undefined ? '.' + scopeIndex : ''}.${option.name}`
+    : option.name;
+  const scopeValue = getValues(scopeName);
+  useEffect(() => {
+    if (Array.isArray(scopeValue)) {
+      setGroupItems(scopeValue.length);
+    }
+  }, [scopeValue]);
   return (
     <Sheet
       variant="outlined"
@@ -169,16 +185,17 @@ export const buildGroupOption = (
                 mb: 1,
               }}
             >
-              {option.group?.map((o, index) =>
-                buildStringOption(
+              {option.group?.map((o, index) => {
+                if (o.group) {
+                  return buildGroupOption(o, true, scopeName, item, index);
+                }
+                return buildStringOption(
                   o,
-                  register,
-                  errors,
-                  option.name,
+                  scopeName,
                   allowAddGroup ? item : undefined,
                   index,
-                ),
-              )}
+                );
+              })}
             </Box>
           </Box>
         ))}
@@ -201,11 +218,12 @@ export const buildGroupOption = (
               startDecorator={<Remove />}
               sx={{ mt: 1 }}
               onClick={() => {
-                option.group?.forEach((o) => {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  unregister(`${option.name}[${groupItems - 1}].${o.name}` as any);
-                });
                 setGroupItems(groupItems - 1);
+                scopeValue.pop();
+                setValue(scopeName, scopeValue);
+                option.group?.forEach((o) => {
+                  unregister(`${scopeName}${groupItems - 1}.${o.name}`);
+                });
               }}
             >
               Reduce {option.label}
@@ -217,22 +235,17 @@ export const buildGroupOption = (
   );
 };
 
-export const ProfileForm = ({
-  config,
-  register,
-  unregister,
-  errors,
-}: ProfileFormProps) => {
+export const ProfileForm = ({ config }: ProfileFormProps) => {
   const nodes = config?.map((option) => {
     switch (option.type) {
       case 'string':
-        return buildStringOption(option, register, errors);
+        return buildStringOption(option);
       case 'object':
-        return buildGroupOption(option, register, unregister, errors);
+        return buildGroupOption(option);
       case 'group':
-        return buildGroupOption(option, register, unregister, errors, true);
+        return buildGroupOption(option, true);
       case 'array':
-        return buildArrayOption(option, register, unregister, errors);
+        return buildArrayOption(option);
       default:
         return null;
     }

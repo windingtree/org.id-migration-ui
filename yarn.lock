@@ -3694,6 +3694,11 @@
   resolved "https://registry.yarnpkg.com/@windingtree/org.json-schema/-/org.json-schema-1.0.2.tgz#a1f738f9e067225ca1d05cd2b925bba09381812a"
   integrity sha512-q9lcSiU7wAjXpN/ux3rqlIgsnNWmUfOnOW0HtY+AlvkdJK+a7P0KYs3K69KHvFWdKN8CJJWyeIVANlaZ/6WeiQ==
 
+"@windingtree/org.json-schema@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@windingtree/org.json-schema/-/org.json-schema-1.1.0.tgz#f9cb54933c7bee8c304889661d076052aa52a225"
+  integrity sha512-18fx00ffewRJIx3Blvr5ljBD6nvwxSNfBW3v24Z52TzcsaCjosOeNTPwL5ZyOaK+epe0v6e9GxGcD42T++mjbQ==
+
 "@windingtree/org.json-utils@1.2.4":
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/@windingtree/org.json-utils/-/org.json-utils-1.2.4.tgz#cd7f7f99760ca34698dc64b2c77b5f2c6814c3b6"

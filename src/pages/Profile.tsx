@@ -4,7 +4,7 @@ import { Wallet } from 'ethers';
 import { useAccount, useSigner } from 'wagmi';
 import { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import {
   Button,
   Typography,
@@ -213,16 +213,13 @@ export const Profile = () => {
   const [chain, setChain] = useState<string | undefined>();
   const [logotype, setLogotype] = useState<string | undefined>();
   const [rawOrgJson, setRawOrgJson] = useState<ORGJSON | undefined>();
-  const {
-    watch,
-    reset,
-    register,
-    unregister,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ProfileFormValues | ProfileUnitFormValues>({ mode: 'onBlur' });
+  const methods = useForm<ProfileFormValues | ProfileUnitFormValues>({ mode: 'onBlur' });
+  const { watch, reset, handleSubmit } = methods;
   const watchForm = watch();
   const { orgJson, loading, error } = useOldOrgId(did);
+  const [defaultState, setDefaultState] = useState<
+    ProfileFormValues | ProfileUnitFormValues | undefined
+  >();
   const { profileConfig, isUnit } = useMemo<ProfileConfig>(() => {
     let profileConfig: ProfileOption[] | undefined;
     let isUnit: boolean | undefined;
@@ -247,9 +244,15 @@ export const Profile = () => {
 
   useEffect(() => {
     if (did && orgJson && !ctx[did]?.profile) {
-      reset(getDefaultProfile(orgJson));
+      setDefaultState(getDefaultProfile(orgJson));
     }
-  }, [reset, did, orgJson]);
+  }, [did, orgJson]);
+
+  useEffect(() => {
+    if (defaultState) {
+      reset(defaultState);
+    }
+  }, [reset, defaultState]);
 
   const onSubmit = handleSubmit(async (d) => {
     if (!chain) {
@@ -330,17 +333,15 @@ export const Profile = () => {
         />
       )}
 
-      <form onSubmit={onSubmit}>
-        <ProfileForm
-          config={profileConfig}
-          register={register}
-          unregister={unregister}
-          errors={errors as FormErrors}
-        />
-        <Button type="submit" size="lg" onClick={onSubmit} sx={{ my: 2 }}>
-          Submit
-        </Button>
-      </form>
+      <FormProvider {...methods}>
+        <form onSubmit={onSubmit}>
+          <ProfileForm config={profileConfig} />
+          <Button type="submit" size="lg" onClick={onSubmit} sx={{ my: 2 }}>
+            Submit
+          </Button>
+        </form>
+      </FormProvider>
+
       <Message type="error" show={error !== undefined} sx={{ mb: 2 }}>
         {error}
       </Message>
