@@ -54,6 +54,8 @@ export type Did = string;
 
 /** List of ORGiDs DIDs */
 export interface DidWithState {
+  name: string;
+  logo: string;
   /** ORGiD DID */
   did: Did;
   /** ORGiD DID */

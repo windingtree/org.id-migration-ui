@@ -1,6 +1,6 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
-import { Button, List, ListItemContent, Box } from '@mui/joy';
+import { Button, Box, AspectRatio, Stack } from '@mui/joy';
 import { useNavigate } from 'react-router-dom';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import UpdateIcon from '@mui/icons-material/Update';
@@ -12,23 +12,32 @@ import { HttpStatusCode } from '../hooks/useApi';
 import { usePoller } from '../hooks/usePoller';
 import { RequireConnect } from '../components/RequireConnect';
 import { Message } from '../components/Message';
-import { EllipsisListButton } from '../components/EllipsisListButton';
+import { EllipsisText } from '../components/EllipsisText';
 import { BE_URI, POLLER_TIMEOUT } from '../config';
+import { DataTable } from '../components/DataTable';
+import { useMemo } from 'react';
+import { Grid, Typography } from '@mui/material';
 
 const icons = {
-  ready: null,
-  requested: <UpdateIcon color="info" sx={{ ml: 1 }} />,
-  progress: <UpdateIcon color="action" sx={{ ml: 1 }} />,
-  failed: <ErrorIcon color="error" sx={{ ml: 1 }} />,
-  completed: <CheckCircleOutlineIcon color="success" sx={{ ml: 1 }} />,
+  ready: <></>,
+  requested: <UpdateIcon color="info" />,
+  progress: <UpdateIcon color="action" />,
+  failed: <ErrorIcon color="error" />,
+  completed: <CheckCircleOutlineIcon color="success" />,
 };
 
 export const StatusIcon = ({ state }: { state: string }) => {
   if (!state) {
     return null;
   }
-  return <div title={state}>{icons[state]}</div>;
+  return (
+    <Box sx={{ mt: 3 }} title={state}>
+      {icons[state]}
+    </Box>
+  );
 };
+
+const tableHeaders = ['ORGiD Details', 'Status', 'Action Needed'];
 
 export const Migrate = () => {
   const navigate = useNavigate();
@@ -40,6 +49,44 @@ export const Migrate = () => {
     address !== undefined,
   );
   usePoller(reload, address !== undefined, POLLER_TIMEOUT, 'Check DIDs');
+
+  const tableData = useMemo(() => {
+    if (!data) return [];
+    return data.map((d) => ({
+      orgId: (
+        <Grid container>
+          <Grid item xs={5} sm={3} md={2}>
+            <AspectRatio
+              ratio="1/1"
+              sx={{ width: 80, borderRadius: '50%', overflow: 'auto' }}
+            >
+              <img src={d.logo} />
+            </AspectRatio>
+          </Grid>
+          <Grid item xs={7} sm={9} md={10} pl={1} pt={2}>
+            <Stack maxWidth="100%">
+              <Typography fontWeight={600} variant="body1">
+                {d.name}
+              </Typography>
+              <EllipsisText variant="body2">{d.did}</EllipsisText>
+            </Stack>
+          </Grid>
+        </Grid>
+      ),
+      status: <StatusIcon state={d.state} />,
+      action: (
+        <Button
+          sx={{ mt: 2 }}
+          disabled={!['ready', 'completed'].includes(d.state)}
+          onClick={() =>
+            navigate(d.state === 'completed' ? `resolve/${d.newDid}` : `migrate/${d.did}`)
+          }
+        >
+          {d.state === 'completed' ? 'Resolve' : 'Migrate'}
+        </Button>
+      ),
+    }));
+  }, [data, StatusIcon]);
 
   if (!address) {
     return <RequireConnect />;
@@ -64,34 +111,7 @@ export const Migrate = () => {
       <Message type="warn" show={address !== undefined && loaded && !data}>
         It seems that account {address} does not own any ORGiDs
       </Message>
-      {data && (
-        <List>
-          {data.map((d, index) => (
-            <ListItemContent
-              key={index}
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                gap: 1,
-                alignItems: 'center',
-                maxWidth: 500,
-              }}
-            >
-              <EllipsisListButton
-                disabled={!['ready', 'completed'].includes(d.state)}
-                onClick={() =>
-                  navigate(
-                    d.state === 'completed' ? `resolve/${d.newDid}` : `migrate/${d.did}`,
-                  )
-                }
-              >
-                {d.did}
-              </EllipsisListButton>
-              <StatusIcon state={d.state} />
-            </ListItemContent>
-          ))}
-        </List>
-      )}
+      {data && <DataTable headers={tableHeaders} data={tableData} />}
       <Message
         type="error"
         show={error !== undefined && errorCode !== HttpStatusCode.NotFound}
