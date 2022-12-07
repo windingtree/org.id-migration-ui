@@ -25,7 +25,7 @@ import { useOldOrgId } from '../hooks/useOldOrgId';
 import { RequireConnect } from '../components/RequireConnect';
 import { Message } from '../components/Message';
 import { ProfileImage } from '../components/ProfileImage';
-import { FormErrors, ProfileConfig, ProfileForm } from '../components/ProfileForm';
+import { ProfileConfig, ProfileForm } from '../components/ProfileForm';
 import { centerEllipsis } from '../utils/strings';
 import {
   ProfileOption,

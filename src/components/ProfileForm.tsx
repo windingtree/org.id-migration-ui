@@ -1,5 +1,5 @@
-import { ReactNode, useEffect, useMemo, useState } from 'react';
-import { UseFormRegister, UseFormUnregister, useFormContext } from 'react-hook-form';
+import { ReactNode, useEffect, useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 import Add from '@mui/icons-material/Add';
 import Remove from '@mui/icons-material/Remove';
 import { useMediaQuery } from '@mui/material';
@@ -145,12 +145,7 @@ export const buildGroupOption = (
 ): ReactNode => {
   const theme = useTheme();
   const isSm = useMediaQuery(theme.breakpoints.down('md'));
-  const {
-    unregister,
-    getValues,
-    setValue,
-    formState: { errors },
-  } = useFormContext();
+  const { unregister, getValues, setValue } = useFormContext();
   const [groupItems, setGroupItems] = useState(1);
   const scopeName = scope
     ? `${scope}${scopeIndex !== undefined ? '.' + scopeIndex : ''}.${option.name}`
