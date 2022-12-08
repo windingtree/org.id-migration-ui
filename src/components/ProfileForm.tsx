@@ -1,57 +1,50 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import {
+  FormControl,
+  TextField,
+  Sheet,
+  Box,
+  Badge,
+  Typography,
+  Switch,
+  Button,
+  Divider,
+} from '@mui/joy';
 import { useFormContext } from 'react-hook-form';
 import Add from '@mui/icons-material/Add';
 import Remove from '@mui/icons-material/Remove';
-import { useMediaQuery } from '@mui/material';
-import {
-  Button,
-  Sheet,
-  Box,
-  TextField,
-  FormControl,
-  Typography,
-  Badge,
-  Divider,
-  useTheme,
-} from '@mui/joy';
 import { ProfileOption } from '../utils/orgJson';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type FormErrors = any;
-
-export interface ProfileConfig {
-  profileConfig?: ProfileOption[];
-  isUnit?: boolean;
-}
-
+import { getDeepValue } from '../utils/objects';
 export interface ProfileFormProps {
-  config: ProfileOption[] | undefined;
+  config?: ProfileOption[];
+  scope?: string;
+  scopeIndex?: number;
 }
 
-export const buildStringOption = (
-  option: ProfileOption,
-  scope?: string,
-  scopeIndex?: number,
-  keyIndex?: number,
-): ReactNode => {
+export interface FieldProps {
+  option: ProfileOption;
+  scope?: string;
+  scopeIndex?: number;
+}
+
+export const Field = ({ option, scope, scopeIndex }: FieldProps) => {
   const {
     register,
     formState: { errors },
   } = useFormContext();
-  const fieldName = (
-    scope
-      ? `${scope}${scopeIndex !== undefined ? '.' + scopeIndex : ''}.${option.name}`
-      : option.name
-  ) as any; // eslint-disable-line @typescript-eslint/no-explicit-any
-  const error = scope
-    ? scopeIndex !== undefined
-      ? errors[scope]?.[scopeIndex]?.[option.name]?.message
-      : errors[scope]?.[option.name]?.message
-    : errors[option.name]?.message;
+  const scopePrefix = scope
+    ? `${scope}${scopeIndex !== undefined ? '.' + scopeIndex : ''}.`
+    : '';
+  const fieldName = `${scopePrefix}${option.name}`;
+  const error = getDeepValue<string>(errors, `${fieldName}.message`);
+  if (!['text', 'number'].includes(option.type)) {
+    return null;
+  }
   return (
-    <FormControl key={`str${option.name}${keyIndex}`} sx={{ mb: 1 }}>
+    <FormControl key={`field${option.name}`} sx={{ mb: 1 }}>
       <TextField
         {...register(fieldName, option.validation)}
+        type={option.type}
         label={option.label}
         placeholder={option.placeholder}
         required={option.required}
@@ -62,7 +55,7 @@ export const buildStringOption = (
   );
 };
 
-export const buildArrayOption = (option: ProfileOption, keyIndex?: number): ReactNode => {
+export const ArrayField = ({ option, scope, scopeIndex }: FieldProps) => {
   const {
     register,
     unregister,
@@ -70,183 +63,292 @@ export const buildArrayOption = (option: ProfileOption, keyIndex?: number): Reac
     setValue,
     formState: { errors },
   } = useFormContext();
+  const [enabled, setEnabled] = useState<boolean>(!!option.required);
   const [arrayItems, setArrayItems] = useState(1);
-  const scopeValue = getValues(option.name);
+  const scopePrefix = scope
+    ? `${scope}${scopeIndex !== undefined ? '.' + scopeIndex : ''}.`
+    : '';
+  const fieldName = `${scopePrefix}${option.name}`;
+  const scopeValue = getValues(fieldName);
   useEffect(() => {
     if (Array.isArray(scopeValue)) {
+      if (scopeValue.length > 0) {
+        setEnabled(true);
+      }
       setArrayItems(scopeValue.length);
     }
   }, [scopeValue]);
-  return (
-    <Sheet
-      variant="outlined"
-      key={`arr${option.name}${keyIndex}`}
-      sx={{ p: 2, mt: 1, mb: 1 }}
-    >
-      <Badge size="sm" badgeContent={arrayItems > 1 ? arrayItems : 0}>
-        <Typography level="h6" sx={{ mb: 1 }}>
-          {option.label}
-        </Typography>
-      </Badge>
-      {Array(arrayItems)
+  useEffect(() => {
+    if (!enabled) {
+      const arrayItemsOrig = arrayItems;
+      setArrayItems(0);
+      setValue(option.name, []);
+      Array(arrayItemsOrig)
         .fill(null)
-        .map((_, index) => {
-          const fieldName = `${option.name}.${index}`;
-          const error = errors[option.name]?.[index]?.message;
-          return (
-            <FormControl key={`itm${option.name}${index}`} sx={{ mb: 1 }}>
-              <TextField
-                {...register(fieldName, option.validation)}
-                placeholder={option.placeholder}
-                required={option.required}
-                helperText={error}
-                error={!!error}
-              />
-            </FormControl>
-          );
-        })}
-      <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
-        <Button
-          size="sm"
-          variant="soft"
-          startDecorator={<Add />}
-          sx={{ mt: 1 }}
-          onClick={() => setArrayItems(arrayItems + 1)}
-        >
-          Add more {option.label}
-        </Button>
-        {arrayItems > 1 && (
-          <Button
-            size="sm"
-            variant="outlined"
-            startDecorator={<Remove />}
-            sx={{ mt: 1 }}
-            onClick={() => {
-              setArrayItems(arrayItems - 1);
-              scopeValue.pop();
-              setValue(option.name, scopeValue);
-              unregister(`${option.name}.${arrayItems - 1}`);
-            }}
-          >
-            Reduce {option.label}
-          </Button>
+        .forEach((_, index) => {
+          unregister(`${fieldName}.${index}`);
+        });
+    }
+  }, [enabled]);
+  return (
+    <Sheet variant="outlined" key={`array${option.name}`} sx={{ p: 2, mt: 1, mb: 1 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Box sx={{ mb: 1 }}>
+          <Badge size="sm" badgeContent={arrayItems > 1 ? arrayItems : 0}>
+            <Typography>{option.label}</Typography>
+          </Badge>
+        </Box>
+        {option.required === undefined && (
+          <Box>
+            <Switch checked={enabled} onChange={() => setEnabled(!enabled)} />
+          </Box>
         )}
       </Box>
-    </Sheet>
-  );
-};
-
-export const buildGroupOption = (
-  option: ProfileOption,
-  allowAddGroup = false,
-  scope?: string,
-  scopeIndex?: number,
-  keyIndex?: number,
-): ReactNode => {
-  const theme = useTheme();
-  const isSm = useMediaQuery(theme.breakpoints.down('md'));
-  const { unregister, getValues, setValue } = useFormContext();
-  const [groupItems, setGroupItems] = useState(1);
-  const scopeName = scope
-    ? `${scope}${scopeIndex !== undefined ? '.' + scopeIndex : ''}.${option.name}`
-    : option.name;
-  const scopeValue = getValues(scopeName);
-  useEffect(() => {
-    if (Array.isArray(scopeValue)) {
-      setGroupItems(scopeValue.length);
-    }
-  }, [scopeValue]);
-  return (
-    <Sheet
-      variant="outlined"
-      key={`grp${option.name}${keyIndex}`}
-      sx={{ p: 2, mt: 1, mb: 1 }}
-    >
-      <Badge size="sm" badgeContent={groupItems > 1 ? groupItems : 0}>
-        <Typography level="h6" sx={{ mb: 1 }}>
-          {option.label}
-        </Typography>
-      </Badge>
-      {Array(groupItems)
-        .fill(null)
-        .map((_, item) => (
-          <Box key={`grpItm${item}`}>
-            {groupItems > 1 && item > 0 && <Divider sx={{ my: 1 }} />}
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: !isSm ? option.groupLayout : 'column',
-                gap: 1,
-                mb: 1,
-              }}
-            >
-              {option.group?.map((o, index) => {
-                if (o.group) {
-                  return buildGroupOption(o, true, scopeName, item, index);
-                }
-                return buildStringOption(
-                  o,
-                  scopeName,
-                  allowAddGroup ? item : undefined,
-                  index,
-                );
-              })}
-            </Box>
-          </Box>
-        ))}
-
-      {allowAddGroup && (
-        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
-          <Button
-            size="sm"
-            variant="soft"
-            startDecorator={<Add />}
-            sx={{ mt: 1 }}
-            onClick={() => setGroupItems(groupItems + 1)}
-          >
-            Add more {option.label}
-          </Button>
-          {groupItems > 1 && (
+      {enabled && (
+        <>
+          {Array(arrayItems)
+            .fill(null)
+            .map((_, index) => {
+              const itemName = `${fieldName}.${index}`;
+              const error = getDeepValue<string>(errors, `${itemName}.message`);
+              return (
+                <FormControl key={`item${itemName}${index}`} sx={{ mb: 1 }}>
+                  <TextField
+                    type={option.arrayItem}
+                    placeholder={option.placeholder}
+                    required={option.required}
+                    helperText={error}
+                    error={!!error}
+                    {...register(itemName, option.validation)}
+                  />
+                </FormControl>
+              );
+            })}
+          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
             <Button
               size="sm"
-              variant="outlined"
-              startDecorator={<Remove />}
+              variant="soft"
+              startDecorator={<Add />}
               sx={{ mt: 1 }}
-              onClick={() => {
-                setGroupItems(groupItems - 1);
-                scopeValue.pop();
-                setValue(scopeName, scopeValue);
-                option.group?.forEach((o) => {
-                  unregister(`${scopeName}${groupItems - 1}.${o.name}`);
-                });
-              }}
+              onClick={() => setArrayItems(arrayItems + 1)}
             >
-              Reduce {option.label}
+              Add more {option.label}
             </Button>
-          )}
-        </Box>
+            {arrayItems > 1 && (
+              <Button
+                size="sm"
+                variant="outlined"
+                startDecorator={<Remove />}
+                sx={{ mt: 1 }}
+                onClick={() => {
+                  setArrayItems(arrayItems - 1);
+                  scopeValue.pop();
+                  setValue(fieldName, scopeValue);
+                  unregister(`${fieldName}.${arrayItems - 1}`);
+                }}
+              >
+                Reduce {option.label}
+              </Button>
+            )}
+          </Box>
+        </>
       )}
     </Sheet>
   );
 };
 
-export const ProfileForm = ({ config }: ProfileFormProps) => {
-  const nodes = config?.map((option) => {
-    switch (option.type) {
-      case 'string':
-        return buildStringOption(option);
-      case 'object':
-        return buildGroupOption(option);
-      case 'group':
-        return buildGroupOption(option, true);
-      case 'array':
-        return buildArrayOption(option);
-      default:
-        return null;
+export const ObjectField = ({ option, scope, scopeIndex }: FieldProps) => {
+  const { unregister, getValues, setValue } = useFormContext();
+  const [enabled, setEnabled] = useState<boolean>(!!option.required);
+  const scopePrefix = scope
+    ? `${scope}${scopeIndex !== undefined ? '.' + scopeIndex : ''}.`
+    : '';
+  const fieldName = `${scopePrefix}${option.name}`;
+  const scopeValue = getValues(fieldName);
+  useEffect(() => {
+    if (scopeValue && Object.keys(scopeValue).length > 0) {
+      setEnabled(true);
     }
-  });
-  if (!nodes) {
-    return null;
-  }
-  return <>{nodes}</>;
+  }, [scopeValue]);
+  useEffect(() => {
+    const scopeValueOrig = scopeValue;
+    if (!enabled && scopeValueOrig) {
+      setValue(`${fieldName}`, {});
+      Object.keys(scopeValueOrig).forEach((key) => {
+        unregister(`${fieldName}.${key}`);
+      });
+    }
+  }, [enabled]);
+  return (
+    <Sheet variant="outlined" key={`array${fieldName}`} sx={{ p: 2, mt: 1, mb: 1 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Box sx={{ mb: 1 }}>
+          <Typography>{option.label}</Typography>
+        </Box>
+        {option.required === undefined && (
+          <Box>
+            <Switch checked={enabled} onChange={() => setEnabled(!enabled)} />
+          </Box>
+        )}
+      </Box>
+      {enabled && <ProfileForm config={option.group} scope={`${fieldName}`} />}
+    </Sheet>
+  );
 };
+
+export const ArrayObjectField = ({ option, scope, scopeIndex }: FieldProps) => {
+  const { unregister, getValues, setValue } = useFormContext();
+  const [enabled, setEnabled] = useState<boolean>(!!option.required);
+  const scopePrefix = scope
+    ? `${scope}${scopeIndex !== undefined ? '.' + scopeIndex : ''}.`
+    : '';
+  const fieldName = `${scopePrefix}${option.name}`;
+  const scopeValue = getValues(fieldName);
+  const [groupItems, setGroupItems] = useState(1);
+  useEffect(() => {
+    if (Array.isArray(scopeValue)) {
+      setGroupItems(scopeValue.length);
+      if (scopeValue.length > 0 && Object.keys(scopeValue[0]).length > 0) {
+        setEnabled(true);
+      }
+    }
+  }, [scopeValue]);
+  useEffect(() => {
+    const scopeValueOrig = scopeValue;
+    if (!enabled && Array.isArray(scopeValueOrig)) {
+      setValue(`${fieldName}`, []);
+      scopeValueOrig.forEach((level, index) => {
+        if (level) {
+          Object.keys(level).forEach((key) => {
+            unregister(`${fieldName}.${index}.${key}`);
+          });
+        }
+      });
+    }
+  }, [enabled]);
+  return (
+    <Sheet variant="outlined" key={`group${fieldName}`} sx={{ p: 2, mt: 1, mb: 1 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Box sx={{ mb: 1 }}>
+          <Badge size="sm" badgeContent={groupItems > 1 ? groupItems : 0}>
+            <Typography>{option.label}</Typography>
+          </Badge>
+        </Box>
+        {option.required === undefined && (
+          <Box>
+            <Switch checked={enabled} onChange={() => setEnabled(!enabled)} />
+          </Box>
+        )}
+      </Box>
+      {enabled && (
+        <>
+          {Array(groupItems)
+            .fill(null)
+            .map((_, index) => (
+              <Box key={index}>
+                {index > 0 && <Divider sx={{ my: 2 }} />}
+                <ProfileForm config={option.group} scope={fieldName} scopeIndex={index} />
+              </Box>
+            ))}
+          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
+            <Button
+              size="sm"
+              variant="soft"
+              startDecorator={<Add />}
+              sx={{ mt: 1 }}
+              onClick={() => setGroupItems(groupItems + 1)}
+            >
+              Add more {option.label}
+            </Button>
+            {groupItems > 1 && (
+              <Button
+                size="sm"
+                variant="outlined"
+                startDecorator={<Remove />}
+                sx={{ mt: 1 }}
+                onClick={() => {
+                  const scopeValueOrig = scopeValue[groupItems];
+                  const groupItemsOrig = groupItems;
+                  setGroupItems(groupItems - 1);
+                  scopeValue.pop();
+                  setValue(fieldName, scopeValue);
+                  if (scopeValueOrig) {
+                    Object.keys(scopeValueOrig).forEach((key) => {
+                      unregister(`${fieldName}.${groupItemsOrig}.${key}`);
+                    });
+                  }
+                }}
+              >
+                Reduce {option.label}
+              </Button>
+            )}
+          </Box>
+        </>
+      )}
+    </Sheet>
+  );
+};
+
+export const ProfileForm = ({ config, scope, scopeIndex }: ProfileFormProps) => (
+  <>
+    {config?.map((option, index) => {
+      switch (option.type) {
+        case 'number':
+        case 'text':
+          return (
+            <Field key={index} option={option} scope={scope} scopeIndex={scopeIndex} />
+          );
+        case 'array':
+          return (
+            <ArrayField
+              key={index}
+              option={option}
+              scope={scope}
+              scopeIndex={scopeIndex}
+            />
+          );
+        case 'object':
+          return (
+            <ObjectField
+              key={index}
+              option={option}
+              scope={scope}
+              scopeIndex={scopeIndex}
+            />
+          );
+        case 'group':
+          return (
+            <ArrayObjectField
+              key={index}
+              option={option}
+              scope={scope}
+              scopeIndex={scopeIndex}
+            />
+          );
+        default:
+          return null;
+      }
+    })}
+  </>
+);

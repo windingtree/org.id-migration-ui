@@ -12,6 +12,7 @@ import {
   Box,
   FormControl,
   FormLabel,
+  FormHelperText,
   Select,
   Option,
   Modal,
@@ -25,8 +26,7 @@ import { useOldOrgId } from '../hooks/useOldOrgId';
 import { RequireConnect } from '../components/RequireConnect';
 import { Message } from '../components/Message';
 import { ProfileImage } from '../components/ProfileImage';
-import { ProfileConfig, ProfileForm } from '../components/ProfileForm';
-import { centerEllipsis } from '../utils/strings';
+import { ProfileForm } from '../components/ProfileForm';
 import {
   ProfileOption,
   legalEntityConfig,
@@ -76,6 +76,15 @@ export const MigrationConfirmation = ({
       return config.name;
     }
   }, [chain]);
+  const orgName = useMemo(
+    () =>
+      rawOrgJson?.organizationalUnit
+        ? rawOrgJson.organizationalUnit.name
+        : rawOrgJson?.legalEntity
+        ? rawOrgJson.legalEntity.legalName
+        : '',
+    [rawOrgJson],
+  );
   const [signing, setSigning] = useState<boolean>(false);
   const [vc, setVc] = useState<SignedVC | undefined>();
   const [vcError, setVcError] = useState<string | undefined>();
@@ -139,7 +148,9 @@ export const MigrationConfirmation = ({
       );
       setSigning(false);
     } catch (err) {
-      setVcError((err as Error).message || 'Unknown ORGiD VC build error');
+      setVcError(
+        (err as any).reason || (err as Error).message || 'Unknown ORGiD VC build error',
+      );
       setSigning(false);
     }
   }, [rawOrgJson, signer]);
@@ -160,13 +171,17 @@ export const MigrationConfirmation = ({
         <ModalClose variant="outlined" disabled={signing || loading} />
 
         <Typography sx={{ mb: 2 }}>
-          Please confirm migration of {centerEllipsis(orgId ?? '', 8)} from Mainnet to the{' '}
-          {chainName}
+          Please confirm migration of {orgName} from Mainnet to {chainName}
+        </Typography>
+
+        <Typography sx={{ mb: 2 }} fontWeight="bold">
+          This process is gasless. You will not have to pay any fee but simply sign your
+          digital credential
         </Typography>
 
         <Typography sx={{ mb: 2 }}>
-          Migration process does not require any payments. All expenses will be paid by
-          WindingTree.
+          Please make sure to scroll down inside your wallet to activate the{' '}
+          <strong>Sign</strong> button
         </Typography>
 
         <Message type="error" show={vcError !== undefined} sx={{ mb: 2 }}>
@@ -211,27 +226,20 @@ export const Profile = () => {
     return result.orgId;
   }, [did]);
   const [chain, setChain] = useState<string | undefined>();
-  const [logotype, setLogotype] = useState<string | undefined>();
+  const [name, setName] = useState<string | undefined>();
   const [rawOrgJson, setRawOrgJson] = useState<ORGJSON | undefined>();
   const methods = useForm<ProfileFormValues | ProfileUnitFormValues>({ mode: 'onBlur' });
-  const { watch, reset, handleSubmit } = methods;
+  const { watch, reset, handleSubmit, setValue } = methods;
   const watchForm = watch();
   const { orgJson, loading, error } = useOldOrgId(did);
   const [defaultState, setDefaultState] = useState<
     ProfileFormValues | ProfileUnitFormValues | undefined
   >();
-  const { profileConfig, isUnit } = useMemo<ProfileConfig>(() => {
-    let profileConfig: ProfileOption[] | undefined;
-    let isUnit: boolean | undefined;
-    if (orgJson) {
-      profileConfig = orgJson.organizationalUnit ? unitConfig : legalEntityConfig;
-      isUnit = orgJson.organizationalUnit !== undefined;
-    }
-    return {
-      profileConfig,
-      isUnit,
-    };
-  }, [orgJson]);
+  const [chainError, setChainError] = useState<string | undefined>();
+  const profileConfig = useMemo<ProfileOption[] | undefined>(
+    () => (orgJson && orgJson.organizationalUnit ? unitConfig : legalEntityConfig),
+    [orgJson],
+  );
 
   useEffect(() => {
     if (did && Object.keys(watchForm).length > 0) {
@@ -243,8 +251,15 @@ export const Profile = () => {
   }, [did, watchForm]);
 
   useEffect(() => {
-    if (did && orgJson && !ctx[did]?.profile) {
+    if (did && orgJson) {
       setDefaultState(getDefaultProfile(orgJson));
+      setName(
+        orgJson && orgJson.organizationalUnit
+          ? orgJson.organizationalUnit?.name
+          : orgJson && orgJson.legalEntity
+          ? orgJson.legalEntity?.legalName
+          : '',
+      );
     }
   }, [did, orgJson]);
 
@@ -256,18 +271,20 @@ export const Profile = () => {
 
   const onSubmit = handleSubmit(async (d) => {
     if (!chain) {
+      setChainError('Target chain is required');
       (chainRef.current as any).scrollIntoView({ behavior: 'smooth' });
       return;
     }
-    if (!logotype) {
+    if (!d.logo) {
       (logoRef.current as any).scrollIntoView({ behavior: 'smooth' });
       return;
     }
-    if (orgJson && orgId && address && chain && logotype) {
+    if (orgJson && orgId && address && chain && d.logo) {
+      const { logo, ...props } = d;
       const orgJsonInput = {
-        ...d,
+        ...props,
         media: {
-          logo: logotype,
+          logo,
         },
       } as unknown as ORGJSON;
       setRawOrgJson(buildOrgJson(orgJsonInput, orgId, chain, address));
@@ -278,27 +295,14 @@ export const Profile = () => {
     <>
       <RequireConnect />
 
-      <Typography
-        level="h2"
-        component="h2"
-        sx={{
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textAlign: 'left',
-          display: 'block',
-        }}
-      >
-        ORGiD:&nbsp;{centerEllipsis(orgId ?? '', 16)}
-      </Typography>
-
       {loading && <CircularProgress size="md" />}
 
-      <FormControl sx={{ mb: 1 }} ref={chainRef}>
+      <FormControl sx={{ mb: 3 }} ref={chainRef} error={!!chainError}>
         <FormLabel required>Target chain</FormLabel>
         <Select
           placeholder="Please choose a target chain Id"
           onChange={(_e, value) => {
+            setChainError(undefined);
             setChain(value as string);
           }}
         >
@@ -308,30 +312,16 @@ export const Profile = () => {
             </Option>
           ))}
         </Select>
-        {!chain && (
-          <Message
-            type="info"
-            text="Your ORGiD will be migrated to this chain"
-            sx={{ mt: 1 }}
-          />
-        )}
+        {!!chainError && <FormHelperText>{chainError}</FormHelperText>}
       </FormControl>
 
       <div ref={logoRef} />
       <ProfileImage
-        url={orgJson?.[isUnit ? 'organizationalUnit' : 'legalEntity'].media?.logo}
-        label="Logotype"
-        onChange={setLogotype}
-        required
-        sx={{ mb: 2 }}
+        url={defaultState?.logo}
+        name={name}
+        orgId={orgId}
+        onChange={(uri) => setValue('logo', uri)}
       />
-      {!logotype && (
-        <Message
-          type="warn"
-          text="Please upload a logotype of your organization"
-          sx={{ mt: 1 }}
-        />
-      )}
 
       <FormProvider {...methods}>
         <form onSubmit={onSubmit}>

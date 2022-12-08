@@ -6,7 +6,6 @@ import Uploady, {
   useUploadyContext,
 } from '@rpldy/uploady';
 import { asUploadButton } from '@rpldy/upload-button';
-import { SxProps } from '@mui/joy/styles/types';
 import {
   Box,
   Card,
@@ -15,26 +14,31 @@ import {
   Button,
   IconButton,
   FormControl,
-  FormLabel,
   CircularProgress,
   Input,
+  Typography,
+  Modal,
+  ModalDialog,
+  ModalClose,
 } from '@mui/joy';
 import ImageIcon from '@mui/icons-material/Image';
 import UploadIcon from '@mui/icons-material/Upload';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { centerEllipsis } from '../utils/strings';
 import { BE_URI } from '../config';
 import { Message } from './Message';
 
 export interface ProfileImageProps {
   url?: string;
-  label: string;
-  required?: boolean;
+  name?: string;
+  orgId?: string;
   onChange: (url?: string) => void;
-  sx?: SxProps;
 }
 
 export interface ImageCardProps {
   value?: string;
+  name?: string;
+  orgId?: string;
   onChange: (url?: string) => void;
 }
 
@@ -55,9 +59,10 @@ export const CustomUploadButton = asUploadButton(
   )),
 );
 
-export const ImageCard = ({ value, onChange }: ImageCardProps) => {
+export const ImageCard = ({ value, name, orgId, onChange }: ImageCardProps) => {
   const ctx = useUploadyContext();
   const [loading, setLoading] = useState<boolean>(false);
+  const [editMode, setEditMode] = useState<boolean>(false);
   const [url, setUrl] = useState<string | undefined>(value);
   const [customUrl, setCustomUrl] = useState<string>(value || '');
   const [error, setError] = useState<string | undefined>();
@@ -99,83 +104,173 @@ export const ImageCard = ({ value, onChange }: ImageCardProps) => {
     setCustomUrl('');
   };
   return (
-    <Card variant="outlined" sx={{ maxWidth: 375 }}>
-      <CardOverflow>
-        {!url && (
-          <AspectRatio objectFit="cover">
-            <div>
-              <ImageIcon sx={{ color: 'text.tertiary', fontSize: '3em' }} />
-            </div>
-          </AspectRatio>
-        )}
-        {url && (
-          <AspectRatio objectFit="cover">
-            <img src={url} />
-          </AspectRatio>
-        )}
-      </CardOverflow>
-      <CardOverflow sx={{ p: 2 }}>
+    <>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+        }}
+      >
         <Box
           sx={{
             display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
+            flexDirection: 'column',
             alignItems: 'center',
           }}
         >
-          <CustomUploadButton extraProps={{ loading }} />
-          <IconButton variant="outlined" onClick={onReset} disabled={loading}>
-            <DeleteIcon />
-          </IconButton>
-        </Box>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <FormControl sx={{ mt: 1 }} disabled={loading}>
-            <Input
-              value={customUrl}
-              onChange={({ target }) => {
-                setCustomUrl(target.value);
-              }}
-            />
-          </FormControl>
-          <IconButton
-            variant="outlined"
-            disabled={loading || customUrl.trim() === ''}
-            onClick={() => {
-              setUrl(customUrl);
+          <Box
+            sx={{
+              width: 150,
+              borderRadius: '50%',
+              overflow: 'hidden',
+              border: '1px solid rgba(0,0,0,0.1)',
+              boxShadow: '0px 5px 8px -7px rgba(0,0,0,0.5)',
             }}
           >
-            <UploadIcon />
-          </IconButton>
+            {!url && (
+              <AspectRatio ratio={1} objectFit="cover">
+                <div>
+                  <ImageIcon sx={{ color: 'text.tertiary', fontSize: '3em' }} />
+                </div>
+              </AspectRatio>
+            )}
+            {url && (
+              <AspectRatio ratio={1} objectFit="cover">
+                <img src={url} />
+              </AspectRatio>
+            )}
+          </Box>
+          <Button size="sm" variant="plain" onClick={() => setEditMode(true)}>
+            Change image
+          </Button>
         </Box>
+        <Box sx={{ ml: 1, mt: -3 }}>
+          {name && (
+            <Typography level="h2" fontSize={'1.2em'} sx={{ mb: 1 }}>
+              {name}
+            </Typography>
+          )}
+          <Typography>{centerEllipsis(orgId ?? '', 6)}</Typography>
+        </Box>
+      </Box>
+      <Message
+        type="warn"
+        text="Please upload a logotype of your organization"
+        show={!url}
+        sx={{ mt: 1 }}
+      />
+      <Modal open={editMode} onClose={() => setEditMode(false)}>
+        <ModalDialog
+          sx={{
+            maxWidth: 500,
+            borderRadius: 'md',
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 1,
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 1,
+              }}
+            >
+              <Box>
+                <Typography level="h4" fontWeight="bold" fontSize="1em">
+                  Change image
+                </Typography>
+              </Box>
+              <Box>
+                <ModalClose />
+              </Box>
+            </Box>
+            <Box>
+              <Card variant="outlined" sx={{ maxWidth: 350 }}>
+                <CardOverflow>
+                  {!url && (
+                    <AspectRatio objectFit="cover">
+                      <div>
+                        <ImageIcon sx={{ color: 'text.tertiary', fontSize: '3em' }} />
+                      </div>
+                    </AspectRatio>
+                  )}
+                  {url && (
+                    <AspectRatio objectFit="cover">
+                      <img src={url} />
+                    </AspectRatio>
+                  )}
+                </CardOverflow>
+                <CardOverflow sx={{ p: 2 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <CustomUploadButton extraProps={{ loading }} />
+                    <IconButton variant="outlined" onClick={onReset} disabled={loading}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 1,
+                      mt: 1,
+                    }}
+                  >
+                    <FormControl disabled={loading}>
+                      <Input
+                        value={customUrl}
+                        onChange={({ target }) => {
+                          setCustomUrl(target.value);
+                        }}
+                      />
+                    </FormControl>
+                    <Box>
+                      <IconButton
+                        variant="outlined"
+                        disabled={loading || customUrl.trim() === ''}
+                        onClick={() => {
+                          setUrl(customUrl);
+                        }}
+                      >
+                        <UploadIcon />
+                      </IconButton>
+                    </Box>
+                  </Box>
 
-        <Message type="error" show={error !== undefined} sx={{ mt: 1, mb: 0 }}>
-          {error}
-        </Message>
-      </CardOverflow>
-    </Card>
+                  <Message type="error" show={error !== undefined} sx={{ mt: 1, mb: 0 }}>
+                    {error}
+                  </Message>
+                </CardOverflow>
+              </Card>
+            </Box>
+          </Box>
+        </ModalDialog>
+      </Modal>
+    </>
   );
 };
 
-export const ProfileImage = ({
-  url,
-  label,
-  required,
-  onChange,
-  sx,
-}: ProfileImageProps) => {
+export const ProfileImage = ({ url, name, orgId, onChange }: ProfileImageProps) => {
   return (
-    <FormControl sx={sx}>
-      <Uploady method="POST" destination={{ url: `${BE_URI}/api/file` }}>
-        <FormLabel required={required}>{label}</FormLabel>
-        <ImageCard onChange={onChange} value={url} />
-      </Uploady>
-    </FormControl>
+    <Uploady method="POST" destination={{ url: `${BE_URI}/api/file` }}>
+      <ImageCard onChange={onChange} value={url} name={name} orgId={orgId} />
+    </Uploady>
   );
 };
