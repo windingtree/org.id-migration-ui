@@ -1,7 +1,9 @@
+import { useMemo } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { Button, Box, AspectRatio, Stack } from '@mui/joy';
 import { useNavigate } from 'react-router-dom';
+import { Grid, Typography } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import UpdateIcon from '@mui/icons-material/Update';
 import ErrorIcon from '@mui/icons-material/Error';
@@ -15,8 +17,7 @@ import { Message } from '../components/Message';
 import { EllipsisText } from '../components/EllipsisText';
 import { BE_URI, POLLER_TIMEOUT } from '../config';
 import { DataTable } from '../components/DataTable';
-import { useMemo } from 'react';
-import { Grid, Typography } from '@mui/material';
+import { centerEllipsis } from '../utils/strings';
 
 const icons = {
   ready: <></>,
@@ -68,7 +69,7 @@ export const Migrate = () => {
               <Typography fontWeight={600} variant="body1">
                 {d.name}
               </Typography>
-              <EllipsisText variant="body2">{d.did}</EllipsisText>
+              <EllipsisText variant="body2">{centerEllipsis(d.did, 12)}</EllipsisText>
             </Stack>
           </Grid>
         </Grid>
@@ -77,6 +78,7 @@ export const Migrate = () => {
       action: (
         <Button
           sx={{ mt: 2 }}
+          color={d.state === 'completed' ? 'info' : 'primary'}
           disabled={!['ready', 'completed'].includes(d.state)}
           onClick={() =>
             navigate(d.state === 'completed' ? `resolve/${d.newDid}` : `migrate/${d.did}`)
@@ -104,10 +106,6 @@ export const Migrate = () => {
           </Button>
         </Box>
       </Box>
-      <Message type="info" show={true} sx={{ maxWidth: 500 }}>
-        Please choose an ORGiD DID from the list below and complete the migration profile
-        form. Migration status will be displayed by a right side of the DID
-      </Message>
       <Message type="warn" show={address !== undefined && loaded && !data}>
         It seems that account {address} does not own any ORGiDs
       </Message>
