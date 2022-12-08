@@ -247,6 +247,8 @@ export const Profile = () => {
         ...ctx[did],
         profile: watchForm,
       };
+      const { name, legalName } = watchForm as any;
+      setName(name || legalName || '');
     }
   }, [did, watchForm]);
 
