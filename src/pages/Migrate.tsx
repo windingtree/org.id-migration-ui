@@ -56,7 +56,7 @@ export const Migrate = () => {
     return data.map((d) => ({
       orgId: (
         <Grid container>
-          <Grid item xs={5} sm={3} md={2}>
+          <Grid item xs={12} sm={3} md={2}>
             <AspectRatio
               ratio="1/1"
               sx={{ width: 80, borderRadius: '50%', overflow: 'auto' }}
@@ -64,7 +64,7 @@ export const Migrate = () => {
               <img src={d.logo} />
             </AspectRatio>
           </Grid>
-          <Grid item xs={7} sm={9} md={10} pl={1} pt={2}>
+          <Grid item xs={12} sm={9} md={10} pl={1} pt={2}>
             <Stack maxWidth="100%">
               <Typography fontWeight={600} variant="body1">
                 {d.name}

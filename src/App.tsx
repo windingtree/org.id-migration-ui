@@ -21,8 +21,8 @@ import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { publicProvider } from 'wagmi/providers/public';
 import { Routes } from './Routes';
 import { PageWrapper } from './components/PageWrapper';
-import { RoutesTabs } from './components/RoutesTabs';
 import { CHAINS } from './config';
+import { Header } from './components/Header';
 
 // Theme customization
 const theme = extendTheme({});
@@ -70,7 +70,7 @@ export const App = () => (
     <WagmiConfig client={wagmiClient}>
       <RainbowKitProvider chains={chains}>
         <BrowserRouter>
-          <RoutesTabs />
+          <Header />
           <PageWrapper>
             <Routes />
           </PageWrapper>

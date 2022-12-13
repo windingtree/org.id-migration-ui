@@ -18,7 +18,8 @@ export const DataTable = ({ headers, data }: TableProps) => {
         <Grid
           item
           key={i}
-          xs={i === 0 ? 7 : true}
+          xs={i === 0 ? 6 : 3}
+          md={i === 0 ? 7 : true}
           p={1}
           textAlign={i === 0 ? 'start' : 'center'}
           borderBottom="0.1rem solid #000"
@@ -34,7 +35,8 @@ export const DataTable = ({ headers, data }: TableProps) => {
             p={1}
             item
             key={key}
-            xs={j === 0 ? 7 : true}
+            xs={j === 0 ? 6 : 3}
+            md={j === 0 ? 7 : true}
             textAlign={j === 0 ? 'start' : 'center'}
             overflow="hidden"
             borderRight={j === 0 ? '0.1rem solid #000' : ''}
