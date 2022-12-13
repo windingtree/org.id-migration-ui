@@ -77,7 +77,7 @@ export const Migrate = () => {
       status: <StatusIcon state={d.state} />,
       action: (
         <Button
-          sx={{ mt: 2 }}
+          sx={{ mt: 2, maxWidth: '100%' }}
           color={d.state === 'completed' ? 'info' : 'primary'}
           disabled={!['ready', 'completed'].includes(d.state)}
           onClick={() =>
