@@ -1,6 +1,6 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
-import { Box, Card, Stack, Typography } from '@mui/joy';
+import { Box, Card, Link, Stack, Typography } from '@mui/joy';
 
 export const RequireConnect = () => {
   const { address } = useAccount();
@@ -8,9 +8,6 @@ export const RequireConnect = () => {
   return (
     <Stack direction="column" alignItems="center" maxWidth="100%">
       <Stack width="30rem">
-        {/* <AspectRatio sx={{ width: 300, borderRadius: 'md', overflow: 'auto' }}>
-                <img src={profileData.logo} />
-              </AspectRatio> */}
         <Typography>
           Migrate your ORGiD benefit from last developments and be ready for the
           marketplace launch
@@ -22,8 +19,20 @@ export const RequireConnect = () => {
           </Box>
         </Card>
         <>
-          <Typography>Discord</Typography>
-          <Typography>Read more about Winding Tree protocol</Typography>
+          <Link
+            fontWeight={600}
+            href="https://discord.com/channels/898350336069218334/898350336069218340"
+            target="_blank"
+          >
+            Discord
+          </Link>
+          <Link
+            fontWeight={600}
+            href="https://developers.windingtree.com"
+            target="_blank"
+          >
+            Read more about Winding Tree protocol
+          </Link>
         </>
       </Stack>
     </Stack>
