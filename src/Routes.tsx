@@ -7,6 +7,7 @@ import { Migrate } from './pages/Migrate';
 import { Resolve } from './pages/Resolve';
 import { Create } from './pages/Create';
 import { Profile } from './pages/Profile';
+import { MyOrgIds } from './pages/MyOrgIds';
 
 export interface ProtectedProps {
   component: ReactNode;
@@ -56,6 +57,13 @@ export const pagesRoutes: Routes = [
         label: 'Resolve',
       },
     ],
+  },
+  {
+    path: '/my',
+    element: <MyOrgIds />,
+    title: 'My ORGiDs',
+    label: 'My ORGiDs',
+    menu: true,
   },
   {
     path: '/create',

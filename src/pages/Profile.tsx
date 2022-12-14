@@ -295,7 +295,7 @@ export const Profile = () => {
 
   return (
     <>
-      <RequireConnect />
+      <RequireConnect legend="Migrate your ORGiD benefit from last developments and be ready for the marketplace launch" />
 
       {loading && <CircularProgress size="md" />}
 

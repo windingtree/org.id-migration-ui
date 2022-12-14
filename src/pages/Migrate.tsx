@@ -91,7 +91,9 @@ export const Migrate = () => {
   }, [data, StatusIcon]);
 
   if (!address) {
-    return <RequireConnect />;
+    return (
+      <RequireConnect legend="Migrate your ORGiD benefit from last developments and be ready for the marketplace launch" />
+    );
   }
 
   return (
