@@ -2381,6 +2381,11 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@openzeppelin/contracts-upgradeable@4.7.3":
+  version "4.7.3"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.7.3.tgz#f1d606e2827d409053f3e908ba4eb8adb1dd6995"
+  integrity sha512-+wuegAMaLcZnLCJIvrVUDzA9z/Wp93f0Dla/4jJvIhijRrPabjQbZe6fWiECLaJyfn5ci9fqf9vTw3xpQOad2A==
+
 "@pedrouid/environment@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@pedrouid/environment/-/environment-1.0.1.tgz#858f0f8a057340e0b250398b75ead77d6f4342ec"
@@ -3679,6 +3684,15 @@
     jose "4.10.0"
     luxon "3.0.4"
 
+"@windingtree/org.id-core@1.2.4":
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/@windingtree/org.id-core/-/org.id-core-1.2.4.tgz#f9c880e3cc2e7630faf32b9a8c649950b7e2d6ff"
+  integrity sha512-j0qo+Tz5eDkzc6vW6tKMLuY2gkAWuHxyUlxWgI5VNmLjpTNLVaV9bwI0UPeEyxX/SJbt8FevUCStnDFZ7bmgJQ==
+  dependencies:
+    "@windingtree/org.id" "3.1.1"
+    "@windingtree/org.id-utils" "^1.2.4"
+    ethers "5.7.1"
+
 "@windingtree/org.id-utils@1.2.4", "@windingtree/org.id-utils@^1.2.4":
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/@windingtree/org.id-utils/-/org.id-utils-1.2.4.tgz#e8ae8fd34849eeea567ad35c2e2c6ee5792784b6"
@@ -3688,6 +3702,13 @@
     ajv-formats "2.1.1"
     axios "1.1.3"
     ethers "5.7.1"
+
+"@windingtree/org.id@3.1.1":
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/@windingtree/org.id/-/org.id-3.1.1.tgz#fbb950178651c80fbb337da14983be6bc37180b0"
+  integrity sha512-WVFqMkpgp4AkFsbiH5Zvf8Emv2dAN4hDQY9f34wZ2NPHCx9OcwZKFRLPRlUsS//xwQpZ6DQZIJZsJo2xMHLD8A==
+  dependencies:
+    "@openzeppelin/contracts-upgradeable" "4.7.3"
 
 "@windingtree/org.json-schema@1.0.2":
   version "1.0.2"
