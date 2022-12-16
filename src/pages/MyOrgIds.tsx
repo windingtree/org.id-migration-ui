@@ -34,7 +34,7 @@ export const MyOrgIds = () => {
         {CHAINS.map((c) => c.name).join(', ')}
       </Message>
 
-      <OrgIdsList chainId={chainId} data={data} sx={{ mt: 3 }} />
+      <OrgIdsList chainId={chainId} data={data} sx={{ mt: 3, maxWidth: 'sm' }} />
 
       <Message type="error" show={error !== undefined} sx={{ mb: 2 }}>
         {error}

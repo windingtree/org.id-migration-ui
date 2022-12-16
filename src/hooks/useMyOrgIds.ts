@@ -1,6 +1,7 @@
-import { useState, useEffect, createContext, useContext, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { OrgIdContract, OrgIdData } from '@windingtree/org.id-core';
-import { providers } from 'ethers';
+import { useProvider } from 'wagmi';
+import { useGlobalState } from './useGlobalState';
 import { getChain } from '../config';
 
 export interface UseMyOrgIdsHook {
@@ -10,41 +11,43 @@ export interface UseMyOrgIdsHook {
   reload(): void;
 }
 
-export const hookContext = createContext<Record<string, OrgIdData[] | undefined>>({});
-
 export const useMyOrgIds = (address?: string, chainId?: number): UseMyOrgIdsHook => {
-  const ctx = useContext(hookContext);
+  const provider = useProvider();
+  const [data, setData] = useGlobalState<Record<string, OrgIdData[]>>('myOrgIds', {});
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | undefined>();
 
   const reload = useCallback(async () => {
     try {
       setError(undefined);
+      setLoading(false);
       if (!address || !chainId) {
         return;
       }
       setLoading(true);
       const selectedChain = getChain(chainId);
-      const provider = new providers.JsonRpcProvider(selectedChain.rpc);
       const contract = new OrgIdContract(selectedChain.orgIdAddress, provider);
       const orgIds = await contract.getOwnOrgIds(address);
-      ctx[address] = orgIds;
+      setData({
+        ...data,
+        [address]: orgIds,
+      });
       setLoading(false);
     } catch (err) {
       setError((err as Error).message || 'Unknown useMyOrgIds error');
       setLoading(false);
     }
-  }, [address, chainId]);
+  }, [address, chainId, provider]);
 
   useEffect(() => {
-    if (address && !ctx[address]) {
+    if (address && !data[address]) {
       reload();
     }
   }, [address]);
 
   return {
     loading,
-    data: address ? ctx[address] : undefined,
+    data: address ? data[address] : undefined,
     error,
     reload,
   };

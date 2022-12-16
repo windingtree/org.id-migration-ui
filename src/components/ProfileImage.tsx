@@ -27,19 +27,22 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { centerEllipsis } from '../utils/strings';
 import { BE_URI } from '../config';
 import { Message } from './Message';
+import { SxProps } from '@mui/joy/styles/types';
 
 export interface ProfileImageProps {
   url?: string;
   name?: string;
   orgId?: string;
-  onChange: (url?: string) => void;
+  onChange(url?: string): void;
+  sx?: SxProps;
 }
 
 export interface ImageCardProps {
   value?: string;
   name?: string;
   orgId?: string;
-  onChange: (url?: string) => void;
+  onChange(url?: string): void;
+  sx?: SxProps;
 }
 
 export const CustomUploadButton = asUploadButton(
@@ -59,7 +62,7 @@ export const CustomUploadButton = asUploadButton(
   )),
 );
 
-export const ImageCard = ({ value, name, orgId, onChange }: ImageCardProps) => {
+export const ImageCard = ({ value, name, orgId, onChange, sx }: ImageCardProps) => {
   const ctx = useUploadyContext();
   const [loading, setLoading] = useState<boolean>(false);
   const [editMode, setEditMode] = useState<boolean>(false);
@@ -104,7 +107,7 @@ export const ImageCard = ({ value, name, orgId, onChange }: ImageCardProps) => {
     setCustomUrl('');
   };
   return (
-    <>
+    <Box sx={sx}>
       <Box
         sx={{
           display: 'flex',
@@ -263,14 +266,14 @@ export const ImageCard = ({ value, name, orgId, onChange }: ImageCardProps) => {
           </Box>
         </ModalDialog>
       </Modal>
-    </>
+    </Box>
   );
 };
 
-export const ProfileImage = ({ url, name, orgId, onChange }: ProfileImageProps) => {
+export const ProfileImage = ({ url, name, orgId, onChange, sx }: ProfileImageProps) => {
   return (
     <Uploady method="POST" destination={{ url: `${BE_URI}/api/file` }}>
-      <ImageCard onChange={onChange} value={url} name={name} orgId={orgId} />
+      <ImageCard onChange={onChange} value={url} name={name} orgId={orgId} sx={sx} />
     </Uploady>
   );
 };

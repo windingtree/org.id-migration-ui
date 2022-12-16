@@ -15,10 +15,12 @@ import Add from '@mui/icons-material/Add';
 import Remove from '@mui/icons-material/Remove';
 import { ProfileOption } from '../utils/orgJson';
 import { getDeepValue } from '../utils/objects';
+import { SxProps } from '@mui/joy/styles/types';
 export interface ProfileFormProps {
   config?: ProfileOption[];
   scope?: string;
   scopeIndex?: number;
+  sx?: SxProps;
 }
 
 export interface FieldProps {
@@ -310,9 +312,12 @@ export const ArrayObjectField = ({ option, scope, scopeIndex }: FieldProps) => {
   );
 };
 
-export const ProfileForm = ({ config, scope, scopeIndex }: ProfileFormProps) => (
-  <>
+export const ProfileForm = ({ config, scope, scopeIndex, sx }: ProfileFormProps) => (
+  <Box sx={sx}>
     {config?.map((option, index) => {
+      if (option.hidden) {
+        return null;
+      }
       switch (option.type) {
         case 'number':
         case 'text':
@@ -350,5 +355,5 @@ export const ProfileForm = ({ config, scope, scopeIndex }: ProfileFormProps) => 
           return null;
       }
     })}
-  </>
+  </Box>
 );

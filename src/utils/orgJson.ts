@@ -14,6 +14,7 @@ export type ProfileOptionType =
   | 'object';
 
 export interface ProfileOption {
+  hidden?: boolean;
   name: string;
   label: string;
   placeholder?: string;
@@ -60,7 +61,9 @@ export interface ProfileFormValues {
   legalType: string;
   registeredAddress: RegisteredAddress;
   contacts: Contact[];
-  logo?: string;
+  media: {
+    logo?: string;
+  };
 }
 
 export interface ProfileUnitFormValues {
@@ -69,10 +72,12 @@ export interface ProfileUnitFormValues {
   type: string[];
   address: RegisteredAddress;
   contacts: Contact[];
-  logo?: string;
+  media: {
+    logo?: string;
+  };
 }
 
-interface EntityData {
+export interface EntityData {
   logo: string;
   type: string;
   name: string;
@@ -81,6 +86,8 @@ interface EntityData {
   locality: string;
   country: string;
 }
+
+export type Profile = ORGJSON['legalEntity'] | ORGJSON['organizationalUnit'];
 
 export const trimValidatorConfig = {
   onBlur: ({ target }) => {
@@ -110,7 +117,7 @@ export const addressGroupConfig: ProfileOption[] = [
   {
     name: 'country',
     label: 'Country code',
-    placeholder: 'IT',
+    placeholder: 'Two-letter country code, e.q. IT',
     type: 'text',
     required: true,
     validation: {
@@ -125,7 +132,7 @@ export const addressGroupConfig: ProfileOption[] = [
   {
     name: 'subdivision',
     label: 'Subdivision',
-    placeholder: '71',
+    placeholder: 'address subdivision, house number',
     type: 'text',
     required: true,
     validation: {
@@ -136,7 +143,7 @@ export const addressGroupConfig: ProfileOption[] = [
   {
     name: 'locality',
     label: 'Locality',
-    placeholder: 'Ferrara',
+    placeholder: 'city',
     type: 'text',
     required: true,
     validation: {
@@ -147,7 +154,7 @@ export const addressGroupConfig: ProfileOption[] = [
   {
     name: 'postalCode',
     label: 'Postal code',
-    placeholder: '44121',
+    placeholder: 'postal code',
     type: 'text',
     required: true,
     validation: {
@@ -158,7 +165,7 @@ export const addressGroupConfig: ProfileOption[] = [
   {
     name: 'streetAddress',
     label: 'Street address',
-    placeholder: 'via Porta s. Pietro 16',
+    placeholder: 'street address',
     type: 'text',
     required: true,
     validation: {
@@ -169,7 +176,7 @@ export const addressGroupConfig: ProfileOption[] = [
   {
     name: 'premise',
     label: 'Premise',
-    placeholder: 'interno 10',
+    placeholder: 'flat number, office',
     type: 'text',
   },
 ];
@@ -178,7 +185,7 @@ export const contactGroupConfig: ProfileOption[] = [
   {
     name: 'function',
     label: 'Function',
-    placeholder: 'Customer service',
+    placeholder: 'contact function name',
     type: 'text',
     required: true,
     validation: {
@@ -189,7 +196,7 @@ export const contactGroupConfig: ProfileOption[] = [
   {
     name: 'name',
     label: 'Name',
-    placeholder: 'John Smith',
+    placeholder: 'contact name',
     type: 'text',
     required: true,
     validation: {
@@ -200,7 +207,7 @@ export const contactGroupConfig: ProfileOption[] = [
   {
     name: 'phone',
     label: 'Phone',
-    placeholder: '+1234567890',
+    placeholder: 'full phone number',
     type: 'text',
     validation: {
       pattern: {
@@ -213,7 +220,7 @@ export const contactGroupConfig: ProfileOption[] = [
   {
     name: 'email',
     label: 'Email',
-    placeholder: 'email@spam.com',
+    placeholder: 'email address',
     type: 'text',
     validation: {
       pattern: {
@@ -226,7 +233,7 @@ export const contactGroupConfig: ProfileOption[] = [
   {
     name: 'website',
     label: 'Website',
-    placeholder: 'https://website.web',
+    placeholder: 'website URI',
     type: 'text',
     validation: {
       pattern: {
@@ -245,7 +252,7 @@ export const contactGroupConfig: ProfileOption[] = [
       {
         name: 'type',
         label: 'Type',
-        placeholder: 'facebook, instagram, etc',
+        placeholder: 'messenger type: facebook, instagram, etc',
         type: 'text',
         required: true,
         validation: {
@@ -256,7 +263,7 @@ export const contactGroupConfig: ProfileOption[] = [
       {
         name: 'value',
         label: 'Value',
-        placeholder: 'account',
+        placeholder: 'account Id',
         type: 'text',
         required: true,
         validation: {
@@ -272,7 +279,7 @@ export const legalEntityConfig: ProfileOption[] = [
   {
     name: 'legalName',
     label: 'Legal name',
-    placeholder: 'Acme Corp.',
+    placeholder: 'company name',
     type: 'text',
     required: true,
     validation: {
@@ -285,7 +292,7 @@ export const legalEntityConfig: ProfileOption[] = [
   {
     name: 'legalType',
     label: 'Legal type',
-    placeholder: 'GmBH',
+    placeholder: 'company type',
     type: 'text',
     required: true,
     validation: {
@@ -298,7 +305,7 @@ export const legalEntityConfig: ProfileOption[] = [
   {
     name: 'registryCode',
     label: 'Registry code',
-    placeholder: 'US12345567',
+    placeholder: 'company registration code',
     type: 'text',
     required: true,
     validation: {
@@ -317,7 +324,7 @@ export const legalEntityConfig: ProfileOption[] = [
       {
         name: 'type',
         label: 'Type',
-        placeholder: 'IATA',
+        placeholder: 'identifier type, e.q. IATA',
         type: 'text',
         required: true,
         validation: {
@@ -330,7 +337,7 @@ export const legalEntityConfig: ProfileOption[] = [
       {
         name: 'value',
         label: 'Identifier',
-        placeholder: '987654321',
+        placeholder: 'identifier value',
         type: 'text',
         required: true,
         validation: {
@@ -346,6 +353,7 @@ export const legalEntityConfig: ProfileOption[] = [
     name: 'registeredAddress',
     label: 'Registered address',
     type: 'object',
+    required: true,
     groupLayout: 'column',
     group: addressGroupConfig,
   },
@@ -357,11 +365,27 @@ export const legalEntityConfig: ProfileOption[] = [
     group: contactGroupConfig,
   },
   {
-    name: 'logo',
-    label: 'Logotype',
-    placeholder: 'https://imagehosting.test/hotel.jpg',
-    type: 'image',
-    required: true,
+    hidden: true,
+    name: 'media',
+    label: 'Media',
+    type: 'group',
+    group: [
+      {
+        name: 'logo',
+        label: 'Logotype',
+        placeholder: 'full image URI',
+        type: 'image',
+        required: true,
+        validation: {
+          required: 'Logotype is required',
+          ...trimValidatorConfig,
+          pattern: {
+            value: regex.uriHttp,
+            message: 'Invalid logotype URI',
+          },
+        },
+      },
+    ],
   },
 ];
 
@@ -369,7 +393,7 @@ export const unitConfig: ProfileOption[] = [
   {
     name: 'name',
     label: 'Name',
-    placeholder: 'Grand Budapest Hotel',
+    placeholder: 'unit name',
     type: 'text',
     required: true,
     validation: {
@@ -382,7 +406,7 @@ export const unitConfig: ProfileOption[] = [
   {
     name: 'description',
     label: 'Description',
-    placeholder: 'Short description of the unit',
+    placeholder: 'short unit description',
     type: 'text',
     required: true,
     validation: {
@@ -397,7 +421,7 @@ export const unitConfig: ProfileOption[] = [
     label: 'Unit type',
     type: 'array',
     arrayItem: 'text',
-    placeholder: 'hotel',
+    placeholder: 'unit type e.q. hotel, ota, etc',
     validation: {
       required: 'Unit type is required',
       ...trimValidatorConfig,
@@ -420,19 +444,27 @@ export const unitConfig: ProfileOption[] = [
     group: contactGroupConfig,
   },
   {
-    name: 'logo',
-    label: 'Logotype',
-    placeholder: 'https://imagehosting.test/hotel.jpg',
-    type: 'image',
-    required: true,
-    validation: {
-      required: 'Logotype is required',
-      ...trimValidatorConfig,
-      pattern: {
-        value: regex.uriHttp,
-        message: 'Invalid logotype URI',
+    hidden: true,
+    name: 'media',
+    label: 'Media',
+    type: 'group',
+    group: [
+      {
+        name: 'logo',
+        label: 'Logotype',
+        placeholder: 'full image URI',
+        type: 'image',
+        required: true,
+        validation: {
+          required: 'Logotype is required',
+          ...trimValidatorConfig,
+          pattern: {
+            value: regex.uriHttp,
+            message: 'Invalid logotype URI',
+          },
+        },
       },
-    },
+    ],
   },
 ];
 
@@ -474,7 +506,9 @@ export const defaultLegalEntityProfile = () =>
       ],
       registeredAddress: defaultAddress,
       contacts: [defaultContact],
-      logo: '',
+      media: {
+        logo: '',
+      },
     },
   ) as unknown as ProfileFormValues;
 
@@ -487,7 +521,9 @@ export const defaultUnitProfile = () =>
       type: [''],
       address: defaultAddress,
       contacts: [defaultContact],
-      logo: '',
+      media: {
+        logo: '',
+      },
     },
   ) as unknown as ProfileUnitFormValues;
 
@@ -497,6 +533,15 @@ export const normalizeUri = (uri?: string): string => {
   }
   return '';
 };
+
+export const getNameFromProfile = (orgJson?: ORGJSON): string =>
+  orgJson
+    ? orgJson.organizationalUnit
+      ? orgJson.organizationalUnit.name
+      : orgJson.legalEntity
+      ? orgJson.legalEntity.legalName
+      : ''
+    : '';
 
 export const getDefaultProfile = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -545,7 +590,7 @@ export const getDefaultProfile = (
         }
       }
     }
-    template.logo = orgJson?.organizationalUnit?.media?.logo || '';
+    template.media.logo = orgJson?.organizationalUnit?.media?.logo || '';
   } else {
     template = defaultLegalEntityProfile();
     template.legalName = orgJson?.legalEntity?.legalName || '';
@@ -582,7 +627,7 @@ export const getDefaultProfile = (
         }
       }
     }
-    template.logo = orgJson?.legalEntity?.media?.logo || '';
+    template.media.logo = orgJson?.legalEntity?.media?.logo || '';
   }
 
   return template;
@@ -688,4 +733,34 @@ export const getEntityData = (
     data.streetAddress = orgJson?.legalEntity?.registeredAddress?.streetAddress || '';
   }
   return data;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const sanitizeObject = <T = any>(profile: any): T => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sanitizeProp = (prop: any) => {
+    if (typeof prop === 'string') {
+      return prop !== '' ? prop : undefined;
+    }
+    if (typeof prop === 'boolean') {
+      return prop;
+    }
+    if (Array.isArray(prop)) {
+      return prop.map((item) => sanitizeProp(item));
+    }
+    if (typeof prop === 'object') {
+      return Object.entries(prop).reduce(
+        (a, v) => ({
+          ...a,
+          ...((p) => {
+            const val = sanitizeProp(p[1]);
+            return val ? { [p[0]]: val } : {};
+          })(v),
+        }),
+        {},
+      );
+    }
+    return prop;
+  };
+  return sanitizeProp(profile) as T;
 };

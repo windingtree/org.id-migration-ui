@@ -8,6 +8,7 @@ import { Resolve } from './pages/Resolve';
 import { Create } from './pages/Create';
 import { Profile } from './pages/Profile';
 import { MyOrgIds } from './pages/MyOrgIds';
+import { Edit } from './pages/Edit';
 
 export interface ProtectedProps {
   component: ReactNode;
@@ -71,6 +72,13 @@ export const pagesRoutes: Routes = [
     title: 'Create ORGiD',
     label: 'Create',
     menu: true,
+  },
+  {
+    path: '/edit/:did',
+    element: <Edit />,
+    title: 'Edit ORGiD',
+    label: 'Edit',
+    menu: false,
   },
   {
     path: '/migrate/:did',

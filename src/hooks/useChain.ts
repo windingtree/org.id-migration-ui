@@ -14,7 +14,7 @@ export const useChain = (): UseChainHook => {
   useEffect(() => {
     if (chain) {
       try {
-        const selected = CHAINS.find((c) => c.chainId === Number(chain.id));
+        const selected = CHAINS.find((c) => c.id === Number(chain.id));
         setSupported(selected !== undefined);
       } catch {
         setSupported(false);
