@@ -286,7 +286,6 @@ export const Profile = () => {
       (logoRef.current as any).scrollIntoView({ behavior: 'smooth' });
       return;
     }
-    console.log('####', d);
     if (orgJson && orgId && address && chain) {
       setRawOrgJson(buildOrgJson(d, orgId, chain, address));
     }
