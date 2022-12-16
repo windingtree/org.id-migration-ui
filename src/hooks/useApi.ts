@@ -1,13 +1,7 @@
-import {
-  createContext,
-  useContext,
-  useCallback,
-  useState,
-  useMemo,
-  useEffect,
-} from 'react';
+import { useCallback, useState, useMemo, useEffect } from 'react';
 import axios, { Method, AxiosRequestConfig, AxiosError } from 'axios';
 import Qs from 'qs';
+import { useGlobalState } from './useGlobalState';
 
 // @todo Replace this definition when this issue will be fixed https://github.com/axios/axios/issues/5126
 export enum HttpStatusCode {
@@ -89,8 +83,6 @@ export interface UseApiHook<T = unknown> {
 export const paramsSerializer = (params: Record<string, string>): string =>
   Qs.stringify(params, { arrayFormat: 'brackets' });
 
-export const hookContext = createContext<Record<string, unknown>>({});
-
 /**
  const {
   data,
@@ -114,7 +106,7 @@ export const useApi = <T>(
   headers?: Record<string, string>,
   withCredentials = false,
 ): UseApiHook<T> => {
-  const ctx = useContext(hookContext);
+  const [queries, setQuery] = useGlobalState<Record<string, unknown>>('apiQueries', {});
   const [error, setError] = useState<string | undefined>();
   const [errorCode, setErrorCode] = useState<HttpStatusCode | undefined>();
   const [loading, setLoading] = useState<boolean>(false);
@@ -126,20 +118,22 @@ export const useApi = <T>(
       }`,
     [method, url, params],
   );
-  const data = useMemo(() => ctx[key] as T | undefined, [ctx[key]]);
 
   const reset = useCallback(() => {
     setError(undefined);
     setErrorCode(undefined);
-    delete ctx[key];
-  }, [ctx[key]]);
+    setQuery({
+      ...queries,
+      [key]: undefined,
+    });
+  }, [key]);
 
   const load = useCallback(
     async (noContext = false) => {
       if (!acceptance) {
         return;
       }
-      if (data && !noContext) {
+      if (queries[key] && !noContext) {
         setLoading(false);
         setLoaded(true);
         return;
@@ -161,7 +155,10 @@ export const useApi = <T>(
         setLoading(true);
         setLoaded(false);
         const { data } = await axios<T>(request);
-        ctx[key] = data;
+        setQuery({
+          ...queries,
+          [key]: data,
+        });
         setLoading(false);
         setLoaded(true);
       } catch (error) {
@@ -180,11 +177,19 @@ export const useApi = <T>(
 
   useEffect(() => {
     if (!acceptance) {
-      delete ctx[key];
+      reset();
     } else {
       load();
     }
-  }, [key, acceptance]);
+  }, [load, reset, acceptance]);
 
-  return { data, loading, loaded, error, errorCode, reload, reset };
+  return {
+    data: queries[key] as T | undefined,
+    loading,
+    loaded,
+    error,
+    errorCode,
+    reload,
+    reset,
+  };
 };
