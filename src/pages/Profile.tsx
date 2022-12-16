@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createContext, useCallback, useContext, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { Wallet } from 'ethers';
 import { useAccount, useSigner } from 'wagmi';
 import { useMemo, useState, useEffect } from 'react';
@@ -37,6 +37,7 @@ import {
   buildOrgJson,
   buildNftMetadata,
 } from '../utils/orgJson';
+// import { useGlobalState } from '../hooks/useGlobalState';
 import { useApi } from '../hooks/useApi';
 import { RequestStatus } from '../common/types';
 import { BE_URI, DEST_CHAINS, getChain } from '../config';
@@ -56,8 +57,6 @@ export interface MigrationConfirmationProps {
   rawOrgJson?: ORGJSON;
   onClose: (status?: RequestStatus) => void;
 }
-
-export const profileContext = createContext<Record<string, ProfileContext>>({});
 
 export const MigrationConfirmation = ({
   did,
@@ -217,7 +216,10 @@ export const MigrationConfirmation = ({
 export const Profile = () => {
   const chainRef = useRef(null);
   const logoRef = useRef(null);
-  const ctx = useContext(profileContext);
+  // const [profiles, setProfiles] = useGlobalState<Record<string, ProfileContext>>(
+  //   'migrationProfiles',
+  //   {},
+  // );
   const navigate = useNavigate();
   const { address } = useAccount();
   const { did } = useParams();
@@ -243,10 +245,13 @@ export const Profile = () => {
 
   useEffect(() => {
     if (did && Object.keys(watchForm).length > 0) {
-      ctx[did] = {
-        ...ctx[did],
-        profile: watchForm,
-      };
+      // setProfiles({
+      //   ...profiles,
+      //   [did]: {
+      //     ...profiles[did],
+      //     profile: watchForm,
+      //   },
+      // });
       const { name, legalName } = watchForm as any;
       setName(name || legalName || '');
     }
@@ -277,19 +282,13 @@ export const Profile = () => {
       (chainRef.current as any).scrollIntoView({ behavior: 'smooth' });
       return;
     }
-    if (!d.logo) {
+    if (!d.media.logo) {
       (logoRef.current as any).scrollIntoView({ behavior: 'smooth' });
       return;
     }
-    if (orgJson && orgId && address && chain && d.logo) {
-      const { logo, ...props } = d;
-      const orgJsonInput = {
-        ...props,
-        media: {
-          logo,
-        },
-      } as unknown as ORGJSON;
-      setRawOrgJson(buildOrgJson(orgJsonInput, orgId, chain, address));
+    console.log('####', d);
+    if (orgJson && orgId && address && chain) {
+      setRawOrgJson(buildOrgJson(d, orgId, chain, address));
     }
   });
 
@@ -309,7 +308,7 @@ export const Profile = () => {
           }}
         >
           {DEST_CHAINS.map((o) => (
-            <Option key={o.chainId} value={String(o.chainId)}>
+            <Option key={o.id} value={String(o.id)}>
               {o.name}
             </Option>
           ))}
@@ -319,10 +318,10 @@ export const Profile = () => {
 
       <div ref={logoRef} />
       <ProfileImage
-        url={defaultState?.logo}
+        url={defaultState?.media?.logo}
         name={name}
         orgId={orgId}
-        onChange={(uri) => setValue('logo', uri)}
+        onChange={(uri) => setValue('media.logo', uri)}
       />
 
       <FormProvider {...methods}>
