@@ -20,6 +20,7 @@ import {
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { publicProvider } from 'wagmi/providers/public';
 import { Routes } from './Routes';
+import { GlobalState } from './store';
 import { PageWrapper } from './components/PageWrapper';
 import { CHAINS } from './config';
 import { Header } from './components/Header';
@@ -27,17 +28,9 @@ import { Header } from './components/Header';
 // Theme customization
 const theme = extendTheme({});
 
-const { chains, provider, webSocketProvider } = configureChains(
-  CHAINS.map((c) => ({
-    id: c.chainId,
-    name: c.name,
-    network: c.name,
-    rpcUrls: {
-      default: c.rpc,
-    },
-  })),
-  [publicProvider()],
-);
+const { chains, provider, webSocketProvider } = configureChains(CHAINS, [
+  publicProvider(),
+]);
 
 const connectors = connectorsForWallets([
   {
@@ -70,10 +63,12 @@ export const App = () => (
     <WagmiConfig client={wagmiClient}>
       <RainbowKitProvider chains={chains}>
         <BrowserRouter>
-          <Header />
-          <PageWrapper>
-            <Routes />
-          </PageWrapper>
+          <GlobalState>
+            <Header />
+            <PageWrapper>
+              <Routes />
+            </PageWrapper>
+          </GlobalState>
         </BrowserRouter>
       </RainbowKitProvider>
     </WagmiConfig>
