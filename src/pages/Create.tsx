@@ -38,6 +38,9 @@ import {
 import { useApi } from '../hooks/useApi';
 import { BE_URI, CHAINS, getChain } from '../config';
 import { common } from '@windingtree/org.id-utils';
+import { centerEllipsis } from '../utils/strings';
+import { ExternalLink } from '../components/ExternalLink';
+import { parseDid } from '@windingtree/org.id-utils/dist/parsers';
 
 export interface ValidationError {
   message: string;
@@ -87,6 +90,9 @@ export const CreationConfirmation = ({
   const [signing, setSigning] = useState<boolean>(false);
   const [vc, setVc] = useState<SignedVC | undefined>();
   const [vcError, setVcError] = useState<string | undefined>();
+  const [hash, setHash] = useState<string | undefined>();
+  const [hashLink, setHashLink] = useState<string | undefined>();
+  const [txLoading, setTxLoading] = useState<boolean>(false);
   const { data, loading, error, reset } = useApi<OrgIdVcResponse>(
     BE_URI,
     'POST',
@@ -96,10 +102,17 @@ export const CreationConfirmation = ({
     vc,
   );
 
+  const isLoading = useMemo(
+    () => signing || loading || txLoading,
+    [signing, loading, txLoading],
+  );
+
   const resetState = (data?: OrgIdVcResponse) => {
     setSigning(false);
     setVc(undefined);
     setVcError(undefined);
+    setHash(undefined);
+    setHashLink(undefined);
     reset();
     onClose(data);
   };
@@ -127,16 +140,21 @@ export const CreationConfirmation = ({
   }, [data]);
 
   const create = useCallback(async () => {
+    setHash(undefined);
     if (salt && data && vc && contract && signer) {
+      setTxLoading(false);
+      const { network } = parseDid(vc.credentialSubject.id as unknown as string);
+      const chain = getChain(network);
       try {
         await contract.createOrgId(salt, data.url, signer, undefined, async (txHash) => {
-          // eslint-disable-next-line no-console
-          console.log(`Transaction hash: ${txHash}`);
+          setHash(txHash);
+          setHashLink(`${chain.blockExplorers?.default.url}/tx/${txHash}`);
         });
+        setTxLoading(false);
         resetState(data);
       } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
+        setTxLoading(false);
+        setVc(undefined);
       }
     }
   }, [vc, data, salt, contract, signer]);
@@ -182,7 +200,7 @@ export const CreationConfirmation = ({
           p: 3,
         }}
       >
-        <ModalClose variant="outlined" disabled={signing || loading} />
+        <ModalClose variant="outlined" disabled={isLoading} />
 
         <Typography sx={{ mb: 2 }}>
           Please confirm creating of {orgName} on {chainName}
@@ -210,19 +228,19 @@ export const CreationConfirmation = ({
           <Button
             variant="solid"
             onClick={signOrgIdVc}
-            disabled={signing || loading}
-            loading={signing || loading}
+            disabled={isLoading}
+            loading={isLoading}
           >
             Create
           </Button>
-          <Button
-            variant="outlined"
-            onClick={() => resetState()}
-            disabled={signing || loading}
-          >
+          <Button variant="outlined" onClick={() => resetState()} disabled={isLoading}>
             Close
           </Button>
         </Box>
+
+        <Message type="info" show={hash !== undefined} sx={{ mt: 2 }}>
+          <ExternalLink href={hashLink}>{centerEllipsis(hash || '', 12)}</ExternalLink>
+        </Message>
       </ModalDialog>
     </Modal>
   );
