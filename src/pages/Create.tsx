@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createContext, useCallback, useContext, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { Wallet } from 'ethers';
 import { OrgIdContract } from '@windingtree/org.id-core';
 import { useAccount, useSigner, useProvider, useNetwork, useSwitchNetwork } from 'wagmi';
@@ -22,6 +22,8 @@ import {
 } from '@mui/joy';
 import { ORGJSON } from '@windingtree/org.json-schema/types/org.json';
 import { createVC, SignedVC } from '@windingtree/org.id-auth/dist/vc';
+import { common } from '@windingtree/org.id-utils';
+import { parseDid } from '@windingtree/org.id-utils/dist/parsers';
 import { RequireConnect } from '../components/RequireConnect';
 import { Message } from '../components/Message';
 import { ProfileImage } from '../components/ProfileImage';
@@ -37,10 +39,8 @@ import {
 } from '../utils/orgJson';
 import { useApi } from '../hooks/useApi';
 import { BE_URI, CHAINS, getChain } from '../config';
-import { common } from '@windingtree/org.id-utils';
 import { centerEllipsis } from '../utils/strings';
 import { ExternalLink } from '../components/ExternalLink';
-import { parseDid } from '@windingtree/org.id-utils/dist/parsers';
 
 export interface ValidationError {
   message: string;
@@ -61,8 +61,6 @@ export interface MigrationConfirmationProps {
   rawOrgJson?: ORGJSON;
   onClose: (status?: OrgIdVcResponse) => void;
 }
-
-export const profileContext = createContext<Record<string, ProfileContext>>({});
 
 export const CreationConfirmation = ({
   salt,
@@ -249,7 +247,6 @@ export const CreationConfirmation = ({
 export const Create = () => {
   const chainRef = useRef(null);
   const logoRef = useRef(null);
-  const ctx = useContext(profileContext);
   const navigate = useNavigate();
   const { address } = useAccount();
   const provider = useProvider();
@@ -278,10 +275,6 @@ export const Create = () => {
 
   useEffect(() => {
     if (Object.keys(watchForm).length > 0) {
-      ctx['did'] = {
-        ...ctx['did'],
-        profile: watchForm,
-      };
       const { name, legalName } = watchForm as any;
       setName(name || legalName || '');
     }
@@ -334,13 +327,13 @@ export const Create = () => {
         {!!chainError && <FormHelperText>{chainError}</FormHelperText>}
       </FormControl>
       <Box sx={{ display: 'flex', gap: 2 }}>
+        <Radio checked={!entity} label="Legal Entity" onChange={() => setEntity(false)} />
         <Radio
           checked={entity}
           onChange={() => setEntity(true)}
           name="radio-buttons"
           label="Organizational Unit"
         />
-        <Radio checked={!entity} label="Legal Entity" onChange={() => setEntity(false)} />
       </Box>
       <div ref={logoRef} />
       <ProfileImage name={name} onChange={(uri) => setValue('media', { logo: uri })} />
@@ -360,9 +353,10 @@ export const Create = () => {
         chain={chain?.id}
         rawOrgJson={rawOrgJson}
         onClose={(data) => {
+          const did = rawOrgJson?.id;
           setRawOrgJson(undefined);
           if (data) {
-            navigate('/');
+            navigate(`/resolve/${did}`);
           }
         }}
       />

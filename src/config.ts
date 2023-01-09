@@ -32,7 +32,6 @@ export const CHAINS: ChainConfig[] = [
       symbol: 'xDAI',
       decimals: 18,
     },
-    testnet: false,
     blockExplorers: {
       default: {
         name: 'blockscout',
@@ -60,7 +59,6 @@ export const CHAINS: ChainConfig[] = [
       symbol: 'MATIC',
       decimals: 18,
     },
-    testnet: false,
     blockExplorers: {
       default: {
         name: 'polygonscan',
@@ -86,7 +84,6 @@ export const CHAINS: ChainConfig[] = [
       symbol: 'GOR',
       decimals: 18,
     },
-    testnet: true,
     blockExplorers: {
       default: {
         name: 'etherscan',
@@ -111,7 +108,6 @@ export const CHAINS: ChainConfig[] = [
       symbol: 'xDAI',
       decimals: 18,
     },
-    testnet: true,
     blockExplorers: {
       default: {
         name: 'blockscout',
