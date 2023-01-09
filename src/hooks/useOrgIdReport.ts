@@ -5,7 +5,6 @@ import { useApi, HttpStatusCode } from './useApi';
 
 export interface UseOrgIdReportHook {
   orgId?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   report?: ResolutionResponse;
   loading: boolean;
   loaded: boolean;
@@ -62,16 +61,18 @@ export interface OrgIdReportResponse {
   resolutionResponse: ResolutionResponse;
 }
 
-export const useOrgIdReport = (did?: string): UseOrgIdReportHook => {
+export const useOrgIdReport = (did?: string, force = false): UseOrgIdReportHook => {
   const { data, loading, loaded, error, errorCode, reload } = useApi<OrgIdReportResponse>(
     VALIDATOR_URI,
     'GET',
     'orgid',
-    did !== undefined,
-    { orgid: did },
+    did !== undefined && did !== '',
+    {
+      orgid: did,
+      ...(force ? { force: true } : {}),
+    },
   );
   return {
-    // orgId: did,
     report: data?.resolutionResponse || undefined,
     loading,
     loaded,
