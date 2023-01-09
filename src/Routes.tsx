@@ -38,13 +38,6 @@ export const Protected = ({ component, path = '/' }: ProtectedProps) => {
 
 export const pagesRoutes: Routes = [
   {
-    path: '/',
-    element: <Migrate />,
-    title: 'Migrate ORGiD',
-    label: 'Migrate',
-    menu: true,
-  },
-  {
     path: '/resolve',
     element: <Resolve />,
     title: 'Resolve ORGiD',
@@ -60,17 +53,24 @@ export const pagesRoutes: Routes = [
     ],
   },
   {
-    path: '/my',
-    element: <MyOrgIds />,
-    title: 'My ORGiDs',
-    label: 'My ORGiDs',
-    menu: true,
-  },
-  {
     path: '/create',
     element: <Create />,
     title: 'Create ORGiD',
     label: 'Create',
+    menu: true,
+  },
+  {
+    path: '/',
+    element: <Migrate />,
+    title: 'Migrate ORGiD',
+    label: 'Migrate',
+    menu: true,
+  },
+  {
+    path: '/my',
+    element: <MyOrgIds />,
+    title: 'My ORGiDs',
+    label: 'My ORGiDs',
     menu: true,
   },
   {
