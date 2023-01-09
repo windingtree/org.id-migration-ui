@@ -101,7 +101,7 @@ export const useApi = <T>(
   method: Method,
   url: string,
   acceptance: boolean,
-  params?: Record<string, string | undefined>,
+  params?: Record<string, string | boolean | undefined>,
   body?: unknown,
   headers?: Record<string, string>,
   withCredentials = false,
@@ -130,7 +130,7 @@ export const useApi = <T>(
 
   const load = useCallback(
     async (noContext = false) => {
-      if (!acceptance) {
+      if (!acceptance || loading) {
         return;
       }
       if (queries[key] && !noContext) {
@@ -170,7 +170,18 @@ export const useApi = <T>(
         setLoaded(true);
       }
     },
-    [acceptance, method, url, endpoint, key],
+    [
+      loading,
+      acceptance,
+      params,
+      body,
+      headers,
+      withCredentials,
+      method,
+      url,
+      endpoint,
+      key,
+    ],
   );
 
   const reload = useCallback(() => load(true), [load]);
