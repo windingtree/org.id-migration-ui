@@ -94,27 +94,27 @@ export const CHAINS: ChainConfig[] = [
     env: ['stage'],
   },
   {
-    name: 'Sokol',
-    network: 'sokol',
-    id: 77,
+    name: 'Chiado',
+    network: 'chiado',
+    id: 10200,
     rpcUrls: {
       default: {
-        http: ['https://sokol.poa.network'],
+        http: ['https://rpc.chiadochain.net'],
       },
     },
     nativeCurrency: {
-      name: 'SPOA',
-      symbol: 'SPOA',
+      name: 'xDAI',
+      symbol: 'xDAI',
       decimals: 18,
     },
     testnet: true,
     blockExplorers: {
       default: {
         name: 'blockscout',
-        url: 'https://blockscout.com/poa/sokol',
+        url: 'https://blockscout.chiadochain.net',
       },
     },
-    orgIdAddress: '0xDd1231c0FD9083DA42eDd2BD4f041d0a54EF7BeE',
+    orgIdAddress: '0xaa727223949Bf082a8AFcb29B34B358d9bad8736',
     dest: true,
     env: ['stage'],
   },
