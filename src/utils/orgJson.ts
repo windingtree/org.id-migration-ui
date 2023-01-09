@@ -75,6 +75,7 @@ export interface ProfileUnitFormValues {
   media: {
     logo?: string;
   };
+  parentOrganization?: string;
 }
 
 export interface EntityData {
@@ -390,6 +391,19 @@ export const legalEntityConfig: ProfileOption[] = [
 ];
 
 export const unitConfig: ProfileOption[] = [
+  {
+    name: 'parentOrganization',
+    label: 'Parent organization',
+    placeholder: 'Parent organization',
+    type: 'text',
+    required: true,
+    validation: {
+      required: 'Unit name is required',
+      ...trimValidatorConfig,
+      ...minLengthValidatorConfig(2),
+      ...maxLengthValidatorConfig(100),
+    },
+  },
   {
     name: 'name',
     label: 'Name',

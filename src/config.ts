@@ -3,6 +3,7 @@ export interface ChainConfig extends Chain {
   orgIdAddress: string;
   dest?: boolean;
   env: string[];
+  mainnet: boolean;
 }
 
 export const checkEnvVariables = (vars: string[]): void =>
@@ -31,7 +32,6 @@ export const CHAINS: ChainConfig[] = [
       symbol: 'xDAI',
       decimals: 18,
     },
-    testnet: false,
     blockExplorers: {
       default: {
         name: 'blockscout',
@@ -41,6 +41,7 @@ export const CHAINS: ChainConfig[] = [
     orgIdAddress: '0xb63d48e9d1e51305a17F4d95aCa3637BBC181b44',
     dest: true,
     env: ['prod'],
+    mainnet: true,
   },
   {
     name: 'Polygon',
@@ -58,7 +59,6 @@ export const CHAINS: ChainConfig[] = [
       symbol: 'MATIC',
       decimals: 18,
     },
-    testnet: false,
     blockExplorers: {
       default: {
         name: 'polygonscan',
@@ -68,6 +68,7 @@ export const CHAINS: ChainConfig[] = [
     orgIdAddress: '0x8a093Cb94663994d19a778c7EA9161352a434c64',
     dest: true,
     env: ['prod'],
+    mainnet: true,
   },
   {
     name: 'Goerli',
@@ -83,7 +84,6 @@ export const CHAINS: ChainConfig[] = [
       symbol: 'GOR',
       decimals: 18,
     },
-    testnet: true,
     blockExplorers: {
       default: {
         name: 'etherscan',
@@ -92,6 +92,7 @@ export const CHAINS: ChainConfig[] = [
     },
     orgIdAddress: '0xe02dF24d8dFdd37B21690DB30F4813cf6c4D9D93',
     env: ['stage'],
+    mainnet: false,
   },
   {
     name: 'Chiado',
@@ -107,7 +108,6 @@ export const CHAINS: ChainConfig[] = [
       symbol: 'xDAI',
       decimals: 18,
     },
-    testnet: true,
     blockExplorers: {
       default: {
         name: 'blockscout',
@@ -117,6 +117,7 @@ export const CHAINS: ChainConfig[] = [
     orgIdAddress: '0xaa727223949Bf082a8AFcb29B34B358d9bad8736',
     dest: true,
     env: ['stage'],
+    mainnet: false,
   },
 ];
 
