@@ -1,4 +1,4 @@
-import { useCallback, useState, useMemo, useEffect } from 'react';
+import { useCallback, useState, useMemo, useEffect, useRef } from 'react';
 import axios, { Method, AxiosRequestConfig, AxiosError } from 'axios';
 import Qs from 'qs';
 import { useGlobalState } from './useGlobalState';
@@ -106,10 +106,12 @@ export const useApi = <T>(
   headers?: Record<string, string>,
   withCredentials = false,
 ): UseApiHook<T> => {
+  const loadingRef = useRef<boolean>(false);
   const [queries, setQuery] = useGlobalState<Record<string, unknown>>('apiQueries', {});
   const [error, setError] = useState<string | undefined>();
   const [errorCode, setErrorCode] = useState<HttpStatusCode | undefined>();
   const [loading, setLoading] = useState<boolean>(false);
+  loadingRef.current = loading;
   const [loaded, setLoaded] = useState<boolean>(false);
   const key = useMemo(
     () =>
@@ -130,7 +132,7 @@ export const useApi = <T>(
 
   const load = useCallback(
     async (noContext = false) => {
-      if (!acceptance || loading) {
+      if (!acceptance || loadingRef.current) {
         return;
       }
       if (queries[key] && !noContext) {
@@ -170,18 +172,7 @@ export const useApi = <T>(
         setLoaded(true);
       }
     },
-    [
-      loading,
-      acceptance,
-      params,
-      body,
-      headers,
-      withCredentials,
-      method,
-      url,
-      endpoint,
-      key,
-    ],
+    [acceptance, params, body, headers, withCredentials, method, url, endpoint, key],
   );
 
   const reload = useCallback(() => load(true), [load]);
