@@ -8,7 +8,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import UpdateIcon from '@mui/icons-material/Update';
 import ErrorIcon from '@mui/icons-material/Error';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import { Dids } from '../common/types';
+import { MigrationItem } from '../common/types';
 import { useApi } from '../hooks/useApi';
 import { HttpStatusCode } from '../hooks/useApi';
 import { usePoller } from '../hooks/usePoller';
@@ -43,7 +43,7 @@ const tableHeaders = ['ORGiD Details', 'Status', 'Action Needed'];
 export const Migrate = () => {
   const navigate = useNavigate();
   const { address } = useAccount();
-  const { data, loading, loaded, error, errorCode, reload } = useApi<Dids>(
+  const { data, loading, loaded, error, errorCode, reload } = useApi<MigrationItem[]>(
     BE_URI,
     'GET',
     `api/dids/${address}`,
