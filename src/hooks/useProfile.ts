@@ -1,6 +1,6 @@
 import { ORGJSON } from '@windingtree/org.json-schema/types/org.json';
 import { DidResolutionResponse } from '@windingtree/org.id-resolver';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { utils } from 'ethers';
 import { useApi } from './useApi';
 import { VALIDATOR_URI } from '../config';
@@ -21,6 +21,7 @@ export const useProfile = (
 ): UseProfileHook => {
   const [data, setData] = useState<Record<string, ORGJSON | undefined>>({});
   const [error, setError] = useState<string | undefined>();
+  const requestParams = useMemo(() => ({ orgid: did, force: 'true' }), [did]);
   const {
     data: report,
     loading,
@@ -28,7 +29,7 @@ export const useProfile = (
     reload,
   } = useApi<{
     resolutionResponse: DidResolutionResponse;
-  }>(VALIDATOR_URI, 'GET', 'orgid', did !== undefined, { orgid: did, force: 'true' });
+  }>(VALIDATOR_URI, 'GET', 'orgid', did !== undefined, requestParams);
 
   useEffect(() => {
     setError(undefined);

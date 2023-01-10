@@ -67,6 +67,12 @@ export const pagesRoutes: Routes = [
     menu: true,
   },
   {
+    path: '/migrate/:did',
+    element: <Profile />,
+    title: 'Migrate ORGiD',
+    label: 'Migrate',
+  },
+  {
     path: '/my',
     element: <MyOrgIds />,
     title: 'My ORGiDs',
@@ -79,12 +85,6 @@ export const pagesRoutes: Routes = [
     title: 'Edit ORGiD',
     label: 'Edit',
     menu: false,
-  },
-  {
-    path: '/migrate/:did',
-    element: <Profile />,
-    title: 'Migrate ORGiD',
-    label: 'Migrate',
   },
 ];
 

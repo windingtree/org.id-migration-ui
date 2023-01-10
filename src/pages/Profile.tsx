@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useRef } from 'react';
-import { Wallet } from 'ethers';
-import { useAccount, useSigner } from 'wagmi';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, FormProvider } from 'react-hook-form';
+import { Wallet } from 'ethers';
+import { useAccount, useSigner } from 'wagmi';
 import {
   Button,
   Typography,
@@ -22,7 +21,6 @@ import {
 import { ORGJSON } from '@windingtree/org.json-schema/types/org.json';
 import { parseDid } from '@windingtree/org.id-utils/dist/parsers';
 import { createVC, SignedVC } from '@windingtree/org.id-auth/dist/vc';
-import { useOldOrgId } from '../hooks/useOldOrgId';
 import { RequireConnect } from '../components/RequireConnect';
 import { Message } from '../components/Message';
 import { ProfileImage } from '../components/ProfileImage';
@@ -37,7 +35,6 @@ import {
   buildOrgJson,
   buildNftMetadata,
 } from '../utils/orgJson';
-// import { useGlobalState } from '../hooks/useGlobalState';
 import { useApi } from '../hooks/useApi';
 import { RequestStatus } from '../common/types';
 import { BE_URI, DEST_CHAINS, getChain } from '../config';
@@ -87,13 +84,17 @@ export const MigrationConfirmation = ({
   const [signing, setSigning] = useState<boolean>(false);
   const [vc, setVc] = useState<SignedVC | undefined>();
   const [vcError, setVcError] = useState<string | undefined>();
+  const requestParams = useMemo(
+    () => ({ did, chain: Number(chain), orgIdVc: JSON.stringify(vc) }),
+    [did, chain, vc],
+  );
   const { data, loading, error, reset } = useApi<RequestStatus>(
     BE_URI,
     'POST',
     'api/request',
     did !== undefined && chain !== undefined && vc !== undefined,
     undefined,
-    { did, chain: Number(chain), orgIdVc: JSON.stringify(vc) },
+    requestParams,
   );
 
   const resetState = (data?: RequestStatus) => {
@@ -216,24 +217,32 @@ export const MigrationConfirmation = ({
 export const Profile = () => {
   const chainRef = useRef(null);
   const logoRef = useRef(null);
-  // const [profiles, setProfiles] = useGlobalState<Record<string, ProfileContext>>(
-  //   'migrationProfiles',
-  //   {},
-  // );
   const navigate = useNavigate();
   const { address } = useAccount();
-  const { did } = useParams();
-  const orgId = useMemo<string | undefined>(() => {
-    const result = parseDid(did || '');
-    return result.orgId;
-  }, [did]);
+  const params = useParams();
+  const { did } = params;
+
+  const {
+    data: orgJson,
+    loading,
+    error,
+  } = useApi<Record<string, any>>(
+    BE_URI,
+    'GET',
+    'api/did',
+    did !== undefined && did !== '',
+    params,
+  );
+
+  const orgId = useMemo<string | undefined>(() => parseDid(did || '').orgId, [did]);
+
   const [chain, setChain] = useState<string | undefined>();
   const [name, setName] = useState<string | undefined>();
   const [rawOrgJson, setRawOrgJson] = useState<ORGJSON | undefined>();
   const methods = useForm<ProfileFormValues | ProfileUnitFormValues>({ mode: 'onBlur' });
   const { watch, reset, handleSubmit, setValue } = methods;
   const watchForm = watch();
-  const { orgJson, loading, error } = useOldOrgId(did);
+
   const [defaultState, setDefaultState] = useState<
     ProfileFormValues | ProfileUnitFormValues | undefined
   >();
@@ -245,20 +254,13 @@ export const Profile = () => {
 
   useEffect(() => {
     if (did && Object.keys(watchForm).length > 0) {
-      // setProfiles({
-      //   ...profiles,
-      //   [did]: {
-      //     ...profiles[did],
-      //     profile: watchForm,
-      //   },
-      // });
       const { name, legalName } = watchForm as any;
       setName(name || legalName || '');
     }
   }, [did, watchForm]);
 
   useEffect(() => {
-    if (did && orgJson) {
+    if (orgJson) {
       setDefaultState(getDefaultProfile(orgJson));
       setName(
         orgJson && orgJson.organizationalUnit
@@ -268,7 +270,7 @@ export const Profile = () => {
           : '',
       );
     }
-  }, [did, orgJson]);
+  }, [orgJson]);
 
   useEffect(() => {
     if (defaultState) {
@@ -276,20 +278,23 @@ export const Profile = () => {
     }
   }, [reset, defaultState]);
 
-  const onSubmit = handleSubmit(async (d) => {
-    if (!chain) {
-      setChainError('Target chain is required');
-      (chainRef.current as any).scrollIntoView({ behavior: 'smooth' });
-      return;
-    }
-    if (!d.media.logo) {
-      (logoRef.current as any).scrollIntoView({ behavior: 'smooth' });
-      return;
-    }
-    if (orgJson && orgId && address && chain) {
-      setRawOrgJson(buildOrgJson(d, orgId, chain, address));
-    }
-  });
+  const onSubmit = useCallback(
+    handleSubmit(async (d) => {
+      if (!chain) {
+        setChainError('Target chain is required');
+        (chainRef.current as any).scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+      if (!d.media.logo) {
+        (logoRef.current as any).scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+      if (orgJson && orgId && address && chain) {
+        setRawOrgJson(buildOrgJson(d, orgId, chain, address));
+      }
+    }),
+    [handleSubmit, chain, address, orgJson],
+  );
 
   return (
     <>
@@ -336,17 +341,19 @@ export const Profile = () => {
         {error}
       </Message>
 
-      <MigrationConfirmation
-        did={did}
-        chain={chain}
-        rawOrgJson={rawOrgJson}
-        onClose={(data) => {
-          setRawOrgJson(undefined);
-          if (data) {
-            navigate('/');
-          }
-        }}
-      />
+      {rawOrgJson && (
+        <MigrationConfirmation
+          did={did}
+          chain={chain}
+          rawOrgJson={rawOrgJson}
+          onClose={(data) => {
+            setRawOrgJson(undefined);
+            if (data) {
+              navigate('/');
+            }
+          }}
+        />
+      )}
     </>
   );
 };
