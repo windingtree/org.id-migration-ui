@@ -1,18 +1,41 @@
 import { Button, Stack, TextField } from '@mui/joy';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { DidResolutionResponse } from '@windingtree/org.id-resolver';
 import { Message } from '../components/Message';
 import { Report } from '../components/Report';
-import { useOrgIdReport } from '../hooks/useOrgIdReport';
+import { VALIDATOR_URI } from '../config';
+import { useApi } from '../hooks/useApi';
+
+export interface OrgIdReportResponse {
+  resolutionResponse: DidResolutionResponse;
+}
 
 export const Resolve = () => {
   const { did } = useParams();
   const [prevDid, setPrevDid] = useState<string | undefined>();
   const [newDid, setDid] = useState<string>(did ?? '');
   const navigate = useNavigate();
-  const { report, loading, loaded, error, reload } = useOrgIdReport(
-    newDid,
-    newDid === prevDid,
+  const requestProps = useMemo(
+    () => ({
+      orgid: newDid,
+      ...(newDid === prevDid ? { force: true } : {}),
+    }),
+    [newDid, prevDid],
+  );
+
+  const {
+    data: report,
+    loading,
+    loaded,
+    error,
+    reload,
+  } = useApi<OrgIdReportResponse>(
+    VALIDATOR_URI,
+    'GET',
+    'orgid',
+    newDid !== undefined && newDid !== '',
+    requestProps,
   );
 
   const onSubmit = useCallback(() => {
@@ -41,11 +64,11 @@ export const Resolve = () => {
         {error}
       </Message>
 
-      <Message type="error" show={report?.didDocument === null}>
-        {report?.didResolutionMetadata.error ?? ''}
+      <Message type="error" show={report?.resolutionResponse.didDocument === null}>
+        {report?.resolutionResponse.didResolutionMetadata.error ?? ''}
       </Message>
 
-      {loaded && !error && <Report report={report} />}
+      {loaded && !error && <Report report={report?.resolutionResponse} />}
     </>
   );
 };

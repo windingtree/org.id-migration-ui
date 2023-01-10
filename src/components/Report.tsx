@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   AspectRatio,
   Card,
@@ -8,7 +9,7 @@ import {
   Typography,
 } from '@mui/joy';
 import { ReactElement } from 'react';
-import { ResolutionResponse } from '../hooks/useOrgIdReport';
+import { DidResolutionResponse } from '@windingtree/org.id-resolver';
 import { getEntityData } from '../utils/orgJson';
 import { normalizeIpfsLink } from '../utils/strings';
 
@@ -29,13 +30,13 @@ const DataRow = ({ label, data }: { label: string; data: string | number }) => (
   </Stack>
 );
 
-export const Report = ({ report }: { report: ResolutionResponse | undefined }) => {
+export const Report = ({ report }: { report: DidResolutionResponse | undefined }) => {
   if (!report || !report.didDocumentMetadata || !report.didDocument) {
     return null;
   }
   const profileData = getEntityData(report.didDocument);
   const orgType = report.didDocument.legalEntity ? 'Legal Entity' : 'Organizational Unit';
-  const ipfsLink = normalizeIpfsLink(report.didDocumentMetadata.data.orgJsonUri);
+  const ipfsLink = normalizeIpfsLink(report.didDocumentMetadata?.data?.orgJsonUri);
 
   return (
     <>
@@ -63,22 +64,28 @@ export const Report = ({ report }: { report: ResolutionResponse | undefined }) =
           <TableRow label="DID" data={<Typography>{report.did}</Typography>} />
           <TableRow
             label="Owner"
-            data={<Typography>{report.didDocumentMetadata.data.owner}</Typography>}
+            data={<Typography>{report.didDocumentMetadata?.data?.owner}</Typography>}
           />
           <TableRow
             label="Token id"
-            data={<Typography>{report.didDocumentMetadata.data.tokenId}</Typography>}
+            data={<Typography>{report.didDocumentMetadata?.data?.tokenId}</Typography>}
           />
           <TableRow
             label="Active"
-            data={!report.didDocumentMetadata.data.deactivated ? <>YES</> : <>NO</>}
+            data={
+              (report.didDocumentMetadata?.data as any)?.deactivated === true ? (
+                <>YES</>
+              ) : (
+                <>NO</>
+              )
+            }
           />
           <TableRow label="Org Type" data={<Typography>{orgType}</Typography>} />
           <TableRow
             label="Link"
             data={
               <Link href={ipfsLink} target="_blank">
-                {report.didDocumentMetadata.data.orgJsonUri}
+                {report.didDocumentMetadata?.data?.orgJsonUri}
               </Link>
             }
           />

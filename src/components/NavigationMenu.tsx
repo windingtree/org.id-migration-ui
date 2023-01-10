@@ -1,11 +1,29 @@
 import { useMemo, useState } from 'react';
-import { Link, useLocation, useMatch } from 'react-router-dom';
+import { Link, useLocation, useMatch, matchRoutes } from 'react-router-dom';
 import IconButton from '@mui/joy/IconButton';
+import Typography from '@mui/joy/Typography';
 import Menu from '@mui/joy/Menu';
 import MenuItem from '@mui/joy/MenuItem';
 import ListItemDecorator from '@mui/joy/ListItemDecorator';
 import MenuIcon from '@mui/icons-material/Menu';
 import { pagesRoutes } from '../Routes';
+
+export const PageTitle = (props) => {
+  const { pathname } = useLocation();
+  const title = useMemo(() => {
+    const routes = matchRoutes(pagesRoutes, pathname);
+    if (routes && routes.length) {
+      return routes[routes.length - 1].route.title;
+    }
+    return '';
+  }, [pathname]);
+
+  return (
+    <Typography fontWeight={600} {...props}>
+      {title}
+    </Typography>
+  );
+};
 
 export const NavigationMenu = () => {
   const { pathname } = useLocation();

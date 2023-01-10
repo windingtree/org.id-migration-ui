@@ -1,5 +1,5 @@
 import { AspectRatio, Stack, Typography } from '@mui/joy';
-import { NavigationMenu } from './NavigationMenu';
+import { NavigationMenu, PageTitle } from './NavigationMenu';
 
 export const Header = () => {
   return (
@@ -10,17 +10,18 @@ export const Header = () => {
       justifyContent="space-between"
       alignItems="center"
     >
-      <Stack direction="row" spacing={1} justifyContent="flex-start">
+      <Stack direction="row" spacing={1} alignItems="center" justifyContent="flex-start">
         <AspectRatio variant="plain" ratio="1/1" sx={{ width: 80 }}>
           <img src="/winding-tree-icon.svg" />
         </AspectRatio>
         <Stack>
-          <Typography fontSize="2em" fontWeight={600}>
-            ORGiD Migration Tool
+          <Typography fontSize="1.4em" fontWeight={600}>
+            ORGiD Tools
           </Typography>
-          <Typography fontWeight={500} color="neutral">
+          <Typography fontSize="0.8em" fontWeight={500} color="neutral">
             A project by Winding Tree
           </Typography>
+          <PageTitle sx={{ mt: 1 }} />
         </Stack>
       </Stack>
       <NavigationMenu />
