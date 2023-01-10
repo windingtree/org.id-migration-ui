@@ -54,8 +54,6 @@ export type Did = string;
 
 /** List of ORGiDs DIDs */
 export interface DidWithState {
-  name: string;
-  logo: string;
   /** ORGiD DID */
   did: Did;
   /** ORGiD DID */
@@ -64,8 +62,25 @@ export interface DidWithState {
   state: RequestState;
 }
 
+/** Item of list of ORGiDs for migration */
+export type MigrationItem = DidWithState & {
+  /** Organization logotype */
+  logo?: string;
+  /** Organization name */
+  name: string;
+};
+
 /** List of ORGiDs DIDs */
 export type Dids = DidWithState[];
+
+/** List of items for migration */
+export type MigrationList = MigrationItem[];
+
+/** In-path API /file/{cid} parameters */
+export interface ApiFileParams {
+  /** ORGiD DID */
+  did: Did;
+}
 
 /** In-path API /owner/{address} parameters */
 export interface ApiOwnerParams {
@@ -99,7 +114,7 @@ export interface MigrationRequest {
   /** ORGiD DID */
   did: Did;
   /** Chain Id */
-  chain: 5 | 77 | 100 | 137;
+  chain: 5 | 10200 | 100 | 137 | 502;
   /** Serialized ORGiD VC */
   orgIdVc: string;
 }
@@ -135,3 +150,18 @@ export interface UploadedFile {
   /** Url of the uploaded file */
   url: string;
 }
+
+/** Text file content */
+export type TextContent = string;
+
+/**
+ * Binary file content
+ * @format binary
+ */
+export type BinaryContent = File;
+
+/** JSON formatted content */
+export type JsonContent = object;
+
+/** File content fetched from IPFS */
+export type FetchedFile = TextContent | BinaryContent | JsonContent;
